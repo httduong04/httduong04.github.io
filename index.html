@@ -96,11 +96,9 @@
   .poem-list { list-style: none; }
 
   .poem-item {
-    border-top: 1px solid #eee;
-    cursor: pointer;
-    transition: padding-left 0.3s ease;
+  cursor: pointer;
+  transition: padding-left 0.3s ease;
   }
-  .poem-item:last-child { border-bottom: 1px solid #eee; }
   .poem-item:hover { padding-left: 12px; }
 
   .poem-link {
@@ -116,7 +114,15 @@
     font-size: clamp(1.4rem, 2.5vw, 1.8rem);
     font-weight: 400;
   }
-
+  .poem-date {
+    font-family: var(--font-poem);
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 400;
+    font-style: italic;
+    color: #666;
+    white-space: nowrap;
+    margin-left: 16px;
+}
   /* ═══════════════════════════════════════
      TRANG BÀI THƠ
      ═══════════════════════════════════════ */
@@ -294,11 +300,11 @@
     <ul class="poem-list">
 
       <li class="poem-item" onclick="openPoem('poem-1')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">sông trăng tiêu điều</span>
-        </a>
-      </li>
-
+  <a class="poem-link" href="javascript:void(0)">
+      <span class="poem-name">sông trăng tiêu điều</span>
+      <span class="poem-date">Tháng 9, 2025</span>
+    </a>
+  </li>
     </ul>
   </main>
 </div>
