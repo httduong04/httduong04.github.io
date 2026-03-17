@@ -70,9 +70,7 @@
     opacity: 1;
   }
 
-  .list-header {
-    padding: 50px 50px 0;
-  }
+  .list-header { padding: 50px 50px 0; }
 
   .list-back {
     font-size: 1.1rem;
@@ -120,16 +118,13 @@
   }
 
   /* ═══════════════════════════════════════
-     TRANG BÀI THƠ — PARALLAX
+     TRANG BÀI THƠ
      ═══════════════════════════════════════ */
   .poem-page {
     display: none;
     min-height: 100vh;
     position: relative;
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: cover;
-    background-attachment: fixed;
+    overflow: hidden;
   }
   .poem-page.active {
     display: block;
@@ -137,11 +132,26 @@
   }
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Tắt parallax trên điện thoại */
+  /* Ảnh nền parallax — JS sẽ điều khiển vị trí */
+  .poem-bg-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    object-fit: cover;
+    object-position: center 0%;
+    pointer-events: none;
+  }
+
+  /* Tắt parallax trên điện thoại: ảnh cuộn bình thường */
   @media (max-width: 768px) {
-    .poem-page {
-      background-attachment: scroll;
-      background-size: 100% 100%;
+    .poem-bg-img {
+      position: absolute;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
     }
   }
 
@@ -162,7 +172,6 @@
   }
   .poem-back:hover { opacity: 0.9; }
 
-  /* Tiêu đề nằm giữa màn hình đầu tiên */
   .poem-hero {
     position: relative;
     z-index: 1;
@@ -183,6 +192,10 @@
     opacity: 0;
     animation: gentleIn 1.2s 0.2s ease forwards;
     font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+    text-shadow:
+      0 0 6px rgba(245,237,227,0.8),
+      0 0 12px rgba(245,237,227,0.6),
+      0 0 24px rgba(245,237,227,0.4);
   }
 
   @keyframes gentleIn {
@@ -197,6 +210,9 @@
     text-transform: uppercase;
     opacity: 0;
     animation: gentleIn 1s 0.8s ease forwards;
+    text-shadow:
+      0 0 6px rgba(245,237,227,0.8),
+      0 0 12px rgba(245,237,227,0.5);
   }
 
   .hero-scroll {
@@ -214,52 +230,29 @@
     50% { opacity: 0.4; transform: translateX(-50%) translateY(6px); }
   }
 
-  /* Phần chữ có nền mờ phía sau */
   .poem-body {
     position: relative;
     z-index: 1;
     max-width: 720px;
     margin: 0 auto;
     padding: 80px 50px 100px;
-    background: rgba(245, 237, 227, 0.6);
-    border-radius: 4px;
   }
 
+  /* Chữ đậm + viền sáng sát chữ thay vì khối mờ lớn */
   .poem-text {
     font-family: var(--font-poem);
     font-size: clamp(1.4rem, 2.6vw, 1.75rem);
     font-weight: 600;
     line-height: 2.1;
     white-space: pre-line;
+    text-shadow:
+      0 0 4px rgba(245,237,227,0.9),
+      0 0 8px rgba(245,237,227,0.8),
+      0 0 16px rgba(245,237,227,0.6),
+      0 0 30px rgba(245,237,227,0.4);
   }
 
   .stanza { margin-bottom: 2.8em; }
-
-  .poem-img {
-    width: 100%;
-    max-width: 900px;
-    margin: 70px auto;
-    display: block;
-    position: relative;
-    z-index: 1;
-  }
-  .poem-img img { width: 100%; display: block; }
-
-  .poem-snd {
-    max-width: 480px;
-    margin: 70px auto;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
-  .poem-snd-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    opacity: 0.4;
-    margin-bottom: 14px;
-  }
-  .poem-snd audio { width: 100%; height: 38px; opacity: 0.6; }
 
   .poem-fin {
     text-align: center;
@@ -309,20 +302,14 @@
 </div>
 
 
-<!-- BÀI 1: sông trăng tiêu điều
-     
-     HƯỚNG DẪN TÙY CHỈNH:
-     - Đổi ảnh nền: thay url('vi-painting-1.JPG')
-     - Đổi màu chữ: thay data-fg và data-title-color
-     - Đổi nền mờ sau chữ: thay rgba(...) trong poem-body
-     - Tắt/bật parallax: tự động tắt trên điện thoại
--->
+<!-- BÀI 1: sông trăng tiêu điều -->
 <div id="poem-1" class="poem-page"
-  style="background-image: url('vi-painting-1.JPG');"
   data-fg="#3a2e22"
   data-title-color="#2c1810"
 >
   <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
+
+  <img class="poem-bg-img" src="vi-painting-1.JPG" alt="">
 
   <div class="poem-hero">
     <h2 class="poem-hero-title">sông trăng tiêu điều</h2>
@@ -412,6 +399,36 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
     list.classList.add('visible');
     window.scrollTo(0, 0);
   }
+
+  /* Parallax: khi cuộn, ảnh di chuyển chậm hơn chữ
+     Đầu trang = đầu tranh, cuối trang = cuối tranh */
+  var isMobile = window.innerWidth <= 768;
+
+  window.addEventListener('scroll', function() {
+    if (isMobile) return;
+    var activePage = document.querySelector('.poem-page.active');
+    if (!activePage) return;
+
+    var img = activePage.querySelector('.poem-bg-img');
+    if (!img) return;
+
+    var pageHeight = activePage.scrollHeight;
+    var viewHeight = window.innerHeight;
+    var scrollTop = window.scrollY;
+    var maxScroll = pageHeight - viewHeight;
+
+    if (maxScroll <= 0) return;
+
+    var percent = scrollTop / maxScroll;
+    if (percent < 0) percent = 0;
+    if (percent > 1) percent = 1;
+
+    img.style.objectPosition = 'center ' + (percent * 100) + '%';
+  });
+
+  window.addEventListener('resize', function() {
+    isMobile = window.innerWidth <= 768;
+  });
 
   var hash = window.location.hash.replace('#', '');
   if (hash && document.getElementById(hash)) {
