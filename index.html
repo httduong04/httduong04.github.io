@@ -56,7 +56,8 @@
     display: inline-block;
     transition: opacity 0.3s ease;
   }
-  .home-click:hover { opacity: 0.5; }
+  .home-click:hover,
+.home-click:active { opacity: 0.5; }
 
   #poem-list-view {
     min-height: 100vh;
@@ -151,17 +152,6 @@
     pointer-events: none;
   }
 
-  /* Tắt parallax trên điện thoại: ảnh cuộn bình thường */
-  @media (max-width: 768px) {
-    .poem-bg-img {
-      position: absolute;
-      width: auto;
-      height: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      object-fit: contain;
-    }
-  }
 
   .poem-back {
     position: fixed;
@@ -273,12 +263,36 @@
     z-index: 1;
   }
 
-  @media (max-width: 640px) {
+ @media (max-width: 768px) {
     .list-header { padding: 30px 24px 0; }
     .list-content { padding: 40px 24px; }
     .poem-link { padding: 24px 6px; }
-    .poem-body { padding: 40px 24px 60px; }
+    .poem-body { padding: 40px 20px 60px; }
     .poem-back { top: 18px; left: 18px; }
+
+    .poem-bg-img {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      object-position: center center;
+    }
+
+    .poem-text {
+      font-size: 1rem;
+      line-height: 2.4;
+    }
+
+    .poem-hero-title {
+      font-size: 1.5rem;
+      padding: 0 20px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .poem-text {
+      font-size: 0.9rem;
+    }
   }
 </style>
 </head>
@@ -410,10 +424,8 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
 
   /* Parallax: khi cuộn, ảnh di chuyển chậm hơn chữ
      Đầu trang = đầu tranh, cuối trang = cuối tranh */
-  var isMobile = window.innerWidth <= 768;
 
   window.addEventListener('scroll', function() {
-    if (isMobile) return;
     var activePage = document.querySelector('.poem-page.active');
     if (!activePage) return;
 
@@ -434,9 +446,6 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
     img.style.objectPosition = 'center ' + (percent * 100) + '%';
   });
 
-  window.addEventListener('resize', function() {
-    isMobile = window.innerWidth <= 768;
-  });
 
   var hash = window.location.hash.replace('#', '');
   if (hash && document.getElementById(hash)) {
