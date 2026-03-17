@@ -72,9 +72,6 @@
 
   .list-header {
     padding: 50px 50px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
   }
 
   .list-back {
@@ -88,13 +85,6 @@
     line-height: 1;
   }
   .list-back:hover { color: var(--black); }
-
-  .list-label {
-    font-size: 0.68rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #bbb;
-  }
 
   .list-content {
     flex: 1;
@@ -128,44 +118,11 @@
     font-size: clamp(1.4rem, 2.5vw, 1.8rem);
     font-weight: 400;
   }
-  .poem-meta {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    font-size: 0.72rem;
-    color: #bbb;
-    flex-shrink: 0;
-  }
-  .poem-arrow {
-    transition: transform 0.3s, color 0.3s;
-    color: #ccc;
-    font-size: 1.1rem;
-  }
-  .poem-item:hover .poem-arrow {
-    transform: translateX(6px);
-    color: var(--black);
-  }
-  .draft-badge {
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border: 1px solid #ddd;
-    border-radius: 2px;
-    color: #bbb;
-  }
-
-  .list-footer {
-    padding: 30px 50px;
-    font-size: 0.65rem;
-    color: #ccc;
-  }
 
   .poem-page {
     display: none;
     min-height: 100vh;
     position: relative;
-    overflow: hidden;
   }
   .poem-page.active {
     display: block;
@@ -182,7 +139,6 @@
     cursor: pointer;
     transition: opacity 0.3s ease;
     text-decoration: none;
-    color: inherit;
     background: none;
     border: none;
     padding: 0;
@@ -191,33 +147,15 @@
   }
   .poem-back:hover { opacity: 0.9; }
 
-  .poem-bg {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-  }
-
-  .poem-overlay {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
+  .poem-cover {
+    width: 100%;
+    display: block;
   }
 
   .poem-hero {
     position: relative;
     z-index: 1;
-    height: 100vh;
+    padding: 80px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -250,27 +188,12 @@
     animation: gentleIn 1s 0.8s ease forwards;
   }
 
-  .hero-scroll {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 1.3rem;
-    opacity: 0;
-    animation: bob 2.5s 2s infinite;
-    z-index: 2;
-  }
-  @keyframes bob {
-    0%,100% { opacity: 0.12; transform: translateX(-50%) translateY(0); }
-    50% { opacity: 0.4; transform: translateX(-50%) translateY(6px); }
-  }
-
   .poem-body {
     position: relative;
     z-index: 1;
     max-width: 720px;
     margin: 0 auto;
-    padding: 100px 44px 100px;
+    padding: 60px 44px 100px;
   }
 
   .poem-text {
@@ -291,18 +214,6 @@
     z-index: 1;
   }
   .poem-img img { width: 100%; display: block; }
-  .poem-img figcaption {
-    font-size: 0.68rem;
-    opacity: 0.4;
-    text-align: right;
-    margin-top: 10px;
-    font-style: italic;
-  }
-  .poem-img.bleed {
-    max-width: 100vw;
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-  }
 
   .poem-snd {
     max-width: 480px;
@@ -335,8 +246,7 @@
     .list-header { padding: 30px 24px 0; }
     .list-content { padding: 40px 24px; }
     .poem-link { padding: 24px 6px; }
-    .poem-body { padding: 60px 24px 80px; }
-    .poem-meta span:first-child { display: none; }
+    .poem-body { padding: 40px 24px 80px; }
     .poem-back { top: 18px; left: 18px; }
   }
 </style>
@@ -358,7 +268,7 @@
   <main class="list-content">
     <ul class="poem-list">
 
-      <li class="poem-item" onclick="openPoem('poem-2')">
+      <li class="poem-item" onclick="openPoem('poem-1')">
         <a class="poem-link" href="javascript:void(0)">
           <span class="poem-name">sông trăng tiêu điều</span>
         </a>
@@ -366,35 +276,25 @@
 
     </ul>
   </main>
-
 </div>
+
 
 <!-- BÀI 1: sông trăng tiêu điều -->
 <div id="poem-1" class="poem-page"
   data-fg="#5c4a3a"
   data-title-color="#2c1810"
+  data-page-bg="#f5ede3"
 >
   <a class="poem-back" style="color:#5c4a3a;" onclick="backToList()">←</a>
 
-  <div class="poem-bg" style="
-    background-image: url('vi-painting-1.JPG');
-    background-position: top center;
-    background-size: cover;
-    background-color: #f5ede3;
-  "></div>
+  <img class="poem-cover" src="vi-painting-1.JPG" alt="sông trăng tiêu điều">
 
-  <div class="poem-overlay" style="
-    background: #f5ede3;
-    opacity: 0.4;
-  "></div>
-
-  <div class="poem-hero">
+  <div class="poem-hero" style="background:#f5ede3;">
     <h2 class="poem-hero-title">sông trăng tiêu điều</h2>
     <span class="poem-hero-date">Tháng 2, 2026</span>
-    <span class="hero-scroll">↓</span>
   </div>
 
-  <div class="poem-body">
+  <div class="poem-body" style="background:#f5ede3;">
     <div class="poem-text">
       <div class="stanza">
 sông trăng tiêu điều
@@ -418,7 +318,7 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
       </div>
     </div>
   </div>
-  <div class="poem-fin" style="color:#5c4a3a;">✦</div>
+  <div class="poem-fin" style="background:#f5ede3; color:#5c4a3a;">✦</div>
 </div>
 
 
@@ -434,6 +334,7 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
   function backToHome() {
     var list = document.getElementById('poem-list-view');
     list.classList.remove('visible');
+    window.location.hash = '';
     setTimeout(function() {
       list.style.display = 'none';
       document.getElementById('homepage').classList.remove('hidden');
@@ -459,7 +360,7 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
     if (date) date.style.color = fg;
 
     page.classList.add('active');
-    window.location.hash = id;         
+    window.location.hash = id;
     window.scrollTo(0, 0);
   }
 
@@ -468,12 +369,14 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
     for (var i = 0; i < pages.length; i++) {
       pages[i].classList.remove('active');
     }
+    window.location.hash = '';
     var list = document.getElementById('poem-list-view');
     list.style.display = 'flex';
     void list.offsetWidth;
     list.classList.add('visible');
     window.scrollTo(0, 0);
   }
+
   var hash = window.location.hash.replace('#', '');
   if (hash && document.getElementById(hash)) {
     document.getElementById('homepage').classList.add('hidden');
