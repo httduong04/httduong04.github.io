@@ -509,6 +509,7 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
     if (date) date.style.color = fg;
 
     page.classList.add('active');
+    window.location.hash = id;         
     window.scrollTo(0, 0);
   }
 
@@ -522,6 +523,11 @@ chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đè
     void list.offsetWidth;
     list.classList.add('visible');
     window.scrollTo(0, 0);
+  }
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) {
+    document.getElementById('homepage').classList.add('hidden');
+    openPoem(hash);
   }
 </script>
 
