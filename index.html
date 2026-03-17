@@ -28,9 +28,6 @@
     overflow-x: hidden;
   }
 
-  /* ═══════════════════════════════════════
-     🏠 HOMEPAGE
-     ═══════════════════════════════════════ */
   #homepage {
     height: 100vh;
     display: flex;
@@ -59,13 +56,8 @@
     display: inline-block;
     transition: opacity 0.3s ease;
   }
-  .home-click:hover {
-    opacity: 0.5;
-  }
+  .home-click:hover { opacity: 0.5; }
 
-  /* ═══════════════════════════════════════
-     📋 DANH SÁCH
-     ═══════════════════════════════════════ */
   #poem-list-view {
     min-height: 100vh;
     display: none;
@@ -169,9 +161,6 @@
     color: #ccc;
   }
 
-  /* ═══════════════════════════════════════
-     📖 TRANG BÀI THƠ
-     ═══════════════════════════════════════ */
   .poem-page {
     display: none;
     min-height: 100vh;
@@ -184,7 +173,6 @@
   }
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Back arrow */
   .poem-back {
     position: fixed;
     top: 28px;
@@ -203,7 +191,6 @@
   }
   .poem-back:hover { opacity: 0.9; }
 
-  /* BACKGROUND IMAGE */
   .poem-bg {
     position: fixed;
     top: 0; left: 0;
@@ -215,7 +202,6 @@
     background-position: center center;
   }
 
-  /* OVERLAY */
   .poem-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -224,7 +210,6 @@
     z-index: 0;
   }
 
-  /* HERO — calm, centered */
   .poem-hero {
     position: relative;
     z-index: 1;
@@ -244,13 +229,6 @@
     letter-spacing: 0.01em;
     opacity: 0;
     animation: gentleIn 1.2s 0.2s ease forwards;
-    /*
-      ═══════════════════════════════════════
-      Cỡ chữ tiêu đề: chỉ lớn hơn bài thơ
-      một chút. Bài thơ = ~1.5rem,
-      tiêu đề = ~2.2rem
-      ═══════════════════════════════════════
-    */
     font-size: clamp(1.8rem, 3.5vw, 2.4rem);
   }
 
@@ -283,7 +261,6 @@
     50% { opacity: 0.4; transform: translateX(-50%) translateY(6px); }
   }
 
-  /* BODY */
   .poem-body {
     position: relative;
     z-index: 1;
@@ -301,7 +278,6 @@
 
   .stanza { margin-bottom: 2.8em; }
 
-  /* MEDIA */
   .poem-img {
     width: 100%;
     max-width: 900px;
@@ -351,7 +327,6 @@
     z-index: 1;
   }
 
-  /* RESPONSIVE */
   @media (max-width: 640px) {
     .list-header { padding: 30px 24px 0; }
     .list-content { padding: 40px 24px; }
@@ -364,9 +339,6 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════
-     🏠 TRANG CHỦ
-     ═══════════════════════════════════════════════════ -->
 <div id="homepage">
   <h1 class="home-title">
     <span>hồ phá </span><span class="home-click" onclick="showList()">thơ</span>
@@ -374,9 +346,6 @@
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════
-     📋 DANH SÁCH BÀI THƠ
-     ═══════════════════════════════════════════════════ -->
 <div id="poem-list-view">
   <header class="list-header">
     <button class="list-back" onclick="backToHome()">←</button>
@@ -385,16 +354,6 @@
 
   <main class="list-content">
     <ul class="poem-list">
-
-      <!--
-      ┌────────────────────────────────────────┐
-      │  📝 THÊM BÀI MỚI VÀO DANH SÁCH:       │
-      │  1. Copy một khối <li>…</li>            │
-      │  2. Đổi 'poem-X' → số mới              │
-      │  3. Đổi tên bài + ngày                 │
-      │  4. Tạo khối poem-page tương ứng       │
-      └────────────────────────────────────────┘
-      -->
 
       <li class="poem-item" onclick="openPoem('poem-1')">
         <a class="poem-link" href="javascript:void(0)">
@@ -436,31 +395,13 @@
 </div>
 
 
-<!--
-═══════════════════════════════════════════════════════════════════════════════
-📖 HƯỚNG DẪN TÙY CHỈNH MỖI BÀI THƠ
-
-  data-fg="#màu_chữ_bài_thơ"        Màu chữ nội dung (nhạt hơn)
-  data-title-color="#màu_tiêu_đề"   Màu chữ tiêu đề (đậm hơn một chút)
-
-  🖼️ HÌNH NỀN: đổi url('...') trong thẻ poem-bg
-  🌫️ LỚP PHỦ: đổi background + opacity trong thẻ poem-overlay
-  🎵 NHẠC: bỏ <!-- --> quanh khối poem-snd, thay src
-  🖼️ ẢNH TRONG BÀI: bỏ <!-- --> quanh khối poem-img, thay src
-═══════════════════════════════════════════════════════════════════════════════
--->
-
-
-<!-- ═══════════════════════════════════════════════════
-     BÀI 1: anh iu em
-     ═══════════════════════════════════════════════════ -->
+<!-- BÀI 1: anh iu em -->
 <div id="poem-1" class="poem-page"
   data-fg="#c8b8a4"
   data-title-color="#f0e2d0"
 >
   <a class="poem-back" onclick="backToList()">←</a>
 
-  <!-- 🖼️ HÌNH NỀN -->
   <div class="poem-bg" style="
     background-image: url('');
     background-position: center center;
@@ -468,7 +409,6 @@
     background-color: #110520;
   "></div>
 
-  <!-- 🌫️ LỚP PHỦ -->
   <div class="poem-overlay" style="
     background: #0a0015;
     opacity: 0.5;
@@ -496,32 +436,17 @@ anh iu em
       <div class="stanza">
 anh iu em
 anh iu em
-         <div class="stanza">
+      </div>
+      <div class="stanza">
 anh rât iu em
       </div>
     </div>
-
-    <!--
-    <figure class="poem-img">
-      <img src="ten-file-anh.jpg" alt="Mô tả">
-      <figcaption>Chú thích — Tác giả</figcaption>
-    </figure>
-    -->
-
-    <!--
-    <div class="poem-snd">
-      <div class="poem-snd-label">Nghe</div>
-      <audio controls src="ten-file.mp3"></audio>
-    </div>
-    -->
   </div>
   <div class="poem-fin">✦</div>
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════
-     BÀI 2: sông trăng tiêu điều
-     ═══════════════════════════════════════════════════ -->
+<!-- BÀI 2: sông trăng tiêu điều -->
 <div id="poem-2" class="poem-page"
   data-fg="#5c4a3a"
   data-title-color="#2c1810"
@@ -541,14 +466,14 @@ anh rât iu em
   "></div>
 
   <div class="poem-hero">
-    <h2 class="poem-hero-title">Về nhà</h2>
+    <h2 class="poem-hero-title">sông trăng tiêu điều</h2>
     <span class="poem-hero-date">Tháng 2, 2026</span>
     <span class="hero-scroll">↓</span>
   </div>
 
   <div class="poem-body">
     <div class="poem-text">
-
+      <div class="stanza">
 sông trăng tiêu điều
 đò ơi, đèn cày của tôi đã cháy gần hết
 ánh sáng thật đẹp đẽ 
@@ -569,20 +494,12 @@ rồi đây khi ánh lửa trên tay nghỉ tắt
 chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đèn dầu.
       </div>
     </div>
-
-    <!--
-    <figure class="poem-img bleed">
-      <img src="ten-file-anh.jpg" alt="Mô tả">
-    </figure>
-    -->
   </div>
   <div class="poem-fin" style="color:#5c4a3a;">✦</div>
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════
-     BÀI 3: Mưa trên mái tôn
-     ═══════════════════════════════════════════════════ -->
+<!-- BÀI 3: Mưa trên mái tôn -->
 <div id="poem-3" class="poem-page"
   data-fg="#7a9fb2"
   data-title-color="#b8d4e3"
@@ -628,21 +545,11 @@ mưa chỉ rơi
 cho đến khi tạnh.
       </div>
     </div>
-
-    <!--
-    <div class="poem-snd">
-      <div class="poem-snd-label">Nghe tiếng mưa</div>
-      <audio controls src="tieng-mua.mp3"></audio>
-    </div>
-    -->
   </div>
   <div class="poem-fin">✦</div>
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════
-     JAVASCRIPT
-     ═══════════════════════════════════════════════════ -->
 <script>
   function showList() {
     document.getElementById('homepage').classList.add('hidden');
@@ -669,7 +576,6 @@ cho đến khi tạnh.
     list.classList.remove('visible');
     setTimeout(function() { list.style.display = 'none'; }, 300);
 
-    // Apply colors
     var fg = page.getAttribute('data-fg');
     var titleColor = page.getAttribute('data-title-color');
     page.style.color = fg;
