@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hồ phá thơ</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --white: #fafafa;
+    --black: #0a0a0a;
+    --font-title: 'Playfair Display', Georgia, serif;
+    --font-poem: 'Cormorant Garamond', Georgia, serif;
+    --font-ui: 'Space Grotesk', sans-serif;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: var(--font-ui);
+    background: var(--white);
+    color: var(--black);
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════════════════════════════
+     🏠 HOMEPAGE
+     ═══════════════════════════════════════ */
+  #homepage {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease;
+  }
+  #homepage.hidden {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+  }
+
+  .home-title {
+    font-family: var(--font-title);
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    text-align: center;
+    user-select: none;
+  }
+
+  .home-click {
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+  }
+  .home-click::after {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    width: 0;
+    height: 1.5px;
+    background: var(--black);
+    transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .home-click:hover::after {
+    width: 100%;
+  }
+
+  /* ═══════════════════════════════════════
+     📋 DANH SÁCH
+     ═══════════════════════════════════════ */
+  #poem-list-view {
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #poem-list-view.visible {
+    display: flex;
+    opacity: 1;
+  }
+
+  .list-header {
+    padding: 50px 50px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .list-back {
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s;
+    background: none;
+    border: none;
+  }
+  .list-back:hover { color: var(--black); }
+
+  .list-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #bbb;
+  }
+
+  .list-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 50px;
+    max-width: 800px;
+  }
+
+  .poem-list { list-style: none; }
+
+  .poem-item {
+    border-top: 1px solid #eee;
+    cursor: pointer;
+    transition: padding-left 0.3s ease;
+  }
+  .poem-item:last-child { border-bottom: 1px solid #eee; }
+  .poem-item:hover { padding-left: 12px; }
+
+  .poem-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 8px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .poem-name {
+    font-family: var(--font-poem);
+    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+    font-weight: 400;
+  }
+  .poem-meta {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #bbb;
+    flex-shrink: 0;
+  }
+  .poem-arrow {
+    transition: transform 0.3s, color 0.3s;
+    color: #ccc;
+    font-size: 1.1rem;
+  }
+  .poem-item:hover .poem-arrow {
+    transform: translateX(6px);
+    color: var(--black);
+  }
+  .draft-badge {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    color: #bbb;
+  }
+
+  .list-footer {
+    padding: 30px 50px;
+    font-size: 0.65rem;
+    color: #ccc;
+  }
+
+  /* ═══════════════════════════════════════
+     📖 TRANG BÀI THƠ
+     ═══════════════════════════════════════ */
+  .poem-page {
+    display: none;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+  .poem-page.active {
+    display: block;
+    animation: pageIn 0.6s ease forwards;
+  }
+  @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* BACK */
+  .poem-back {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 200;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: inherit;
+  }
+  .poem-back:hover {
+    background: rgba(255,255,255,0.9);
+    color: #0a0a0a;
+  }
+
+  /*
+  ═══════════════════════════════════════════════════════
+  🖼️ HÌNH NỀN — HƯỚNG DẪN CHI TIẾT
+
+  Mỗi trang bài thơ có 1 thẻ <div class="poem-bg">
+  Bạn tùy chỉnh hình nền bằng cách thay đổi style:
+
+  background-image: url('đường-dẫn-ảnh.jpg');
+    → Thay bằng link ảnh hoặc tên file ảnh
+
+  background-position: center center;
+    → Vị trí ảnh. Các giá trị:
+       center center  = giữa
+       top left       = góc trên trái
+       bottom right   = góc dưới phải
+       20% 50%        = tùy chỉnh %
+
+  background-size: cover;
+    → Cách ảnh lấp đầy. Các giá trị:
+       cover    = lấp đầy, có thể cắt viền
+       contain  = hiện trọn ảnh, có thể thừa viền
+       100% auto = rộng 100%, cao tự động
+
+  Lớp phủ tối/sáng nằm trong thẻ <div class="poem-overlay">
+  Thay đổi opacity để ảnh rõ hay mờ:
+    opacity: 0.5  = tối vừa (dễ đọc chữ)
+    opacity: 0.3  = ít tối (ảnh rõ hơn)
+    opacity: 0.7  = rất tối (chữ rõ nhất)
+    opacity: 0    = không phủ (ảnh nguyên)
+  Thay đổi background để đổi màu phủ:
+    background: #000  = phủ đen
+    background: #fff  = phủ trắng
+    background: #1a0a2e = phủ tím
+  ═══════════════════════════════════════════════════════
+  */
+
+  .poem-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+  }
+
+  .poem-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+  }
+
+  /* HERO */
+  .poem-hero {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .hw {
+    position: absolute;
+    font-family: var(--font-title);
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    opacity: 0;
+    animation: hwIn 0.9s forwards;
+  }
+  @keyframes hwIn {
+    from { opacity: 0; transform: scale(0.15) rotate(-20deg); filter: blur(15px); }
+    to { opacity: 1; transform: scale(1) rotate(var(--r, 0deg)); filter: blur(0); }
+  }
+
+  .hero-date {
+    position: absolute;
+    bottom: 60px;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeIn 1s 1.2s forwards;
+    z-index: 2;
+  }
+  @keyframes fadeIn { to { opacity: 0.5; } }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.4rem;
+    opacity: 0;
+    animation: bob 2s 1.8s infinite;
+    z-index: 2;
+  }
+  @keyframes bob {
+    0%,100% { opacity: 0.15; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 0.5; transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* BODY */
+  .poem-body {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 120px 44px 100px;
+  }
+
+  .poem-text {
+    font-family: var(--font-poem);
+    font-size: clamp(1.25rem, 2.3vw, 1.6rem);
+    line-height: 2.15;
+    white-space: pre-line;
+  }
+
+  .stanza { margin-bottom: 2.8em; }
+
+  /* INLINE IMAGES & AUDIO */
+  .poem-img {
+    width: 100%;
+    max-width: 900px;
+    margin: 70px auto;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+  .poem-img img { width: 100%; display: block; }
+  .poem-img figcaption {
+    font-size: 0.68rem;
+    opacity: 0.4;
+    text-align: right;
+    margin-top: 10px;
+    font-style: italic;
+  }
+  .poem-img.bleed {
+    max-width: 100vw;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+  }
+
+  .poem-snd {
+    max-width: 480px;
+    margin: 70px auto;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .poem-snd-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 14px;
+  }
+  .poem-snd audio { width: 100%; height: 38px; opacity: 0.6; }
+
+  .poem-fin {
+    text-align: center;
+    padding: 100px 40px 120px;
+    font-family: var(--font-title);
+    font-size: 2.5rem;
+    opacity: 0.1;
+    letter-spacing: 0.4em;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    .list-header { padding: 30px 24px 0; }
+    .list-content { padding: 40px 24px; }
+    .poem-link { padding: 24px 6px; }
+    .poem-body { padding: 80px 24px 80px; }
+    .poem-meta span:first-child { display: none; }
+    .poem-back { top: 14px; left: 14px; padding: 8px 14px; font-size: 0.62rem; }
+    .hw { font-size: clamp(2rem, 12vw, 4rem) !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     🏠 TRANG CHỦ
+     ═══════════════════════════════════════════════════ -->
+<div id="homepage">
+  <h1 class="home-title">
+    <span>hồ phá </span><span class="home-click" onclick="showList()">thơ</span>
+  </h1>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     📋 DANH SÁCH
+     ═══════════════════════════════════════════════════ -->
+<div id="poem-list-view">
+  <header class="list-header">
+    <button class="list-back" onclick="backToHome()">← Trở về</button>
+    <span class="list-label">Bản nháp</span>
+  </header>
+
+  <main class="list-content">
+    <ul class="poem-list">
+
+      <!--
+      ┌────────────────────────────────────────┐
+      │  📝 THÊM BÀI MỚI VÀO DANH SÁCH:       │
+      │  1. Copy một khối <li>…</li>            │
+      │  2. Đổi 'poem-X' → số mới              │
+      │  3. Đổi tên bài + ngày                 │
+      │  4. Tạo khối poem-page tương ứng       │
+      └────────────────────────────────────────┘
+      -->
+
+      <li class="poem-item" onclick="openPoem('poem-1')">
+        <a class="poem-link" href="javascript:void(0)">
+          <span class="poem-name">Giữa lưng chừng</span>
+          <span class="poem-meta">
+            <span>03.2026</span>
+            <span class="draft-badge">Nháp</span>
+            <span class="poem-arrow">→</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="poem-item" onclick="openPoem('poem-2')">
+        <a class="poem-link" href="javascript:void(0)">
+          <span class="poem-name">Về nhà</span>
+          <span class="poem-meta">
+            <span>02.2026</span>
+            <span class="draft-badge">Nháp</span>
+            <span class="poem-arrow">→</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="poem-item" onclick="openPoem('poem-3')">
+        <a class="poem-link" href="javascript:void(0)">
+          <span class="poem-name">Mưa trên mái tôn</span>
+          <span class="poem-meta">
+            <span>01.2026</span>
+            <span class="draft-badge">Nháp</span>
+            <span class="poem-arrow">→</span>
+          </span>
+        </a>
+      </li>
+
+    </ul>
+  </main>
+
+  <footer class="list-footer">trang cá nhân — chưa chính thức đăng tải</footer>
+</div>
+
+
+<!--
+═══════════════════════════════════════════════════════════════════════════════
+📖 CẤU TRÚC MỖI BÀI THƠ — ĐỌC KỸ TRƯỚC KHI CHỈNH SỬA
+
+  Mỗi bài có các thuộc tính data- trên thẻ poem-page:
+
+  data-fg="#màu_chữ"          Màu chữ toàn trang (ví dụ: #f0e2d0)
+
+  data-words="..."            Tiêu đề rải rác trên hero
+    Cú pháp mỗi từ: Từ|cỡ|trái%|trên%|xoay|delay
+    Ví dụ: Giữa|clamp(4rem,12vw,9rem)|25%|20%|-3deg|0.3s
+
+  🖼️ HÌNH NỀN — chỉnh trong thẻ <div class="poem-bg" style="...">
+
+    background-image: url('tên-file.jpg')    ← đường dẫn ảnh
+    background-position: center center       ← vị trí ảnh
+    background-size: cover                   ← cách lấp đầy
+
+    Các giá trị background-position:
+      center center   → giữa (mặc định)
+      top center      → trên giữa
+      bottom center   → dưới giữa
+      left center     → trái giữa
+      20% 80%         → tùy chỉnh
+
+    Các giá trị background-size:
+      cover           → lấp đầy, cắt viền nếu cần
+      contain         → hiện trọn, có thể thừa viền
+      100% auto       → rộng hết, cao tự động
+
+  🌫️ LỚP PHỦ — chỉnh trong thẻ <div class="poem-overlay" style="...">
+
+    background: #000   → phủ đen (dùng cho ảnh sáng)
+    background: #fff   → phủ trắng (dùng cho ảnh tối)
+    background: #1a0a2e → phủ tím
+
+    opacity: 0.5       → vừa phải
+    opacity: 0.3       → nhẹ, ảnh rõ hơn
+    opacity: 0.7       → đậm, chữ dễ đọc hơn
+    opacity: 0         → không phủ gì
+
+  🎵 NHẠC — bỏ <!-- --> quanh khối poem-snd, thay src
+  🖼️ ẢNH TRONG BÀI — bỏ <!-- --> quanh khối poem-img, thay src
+
+═══════════════════════════════════════════════════════════════════════════════
+-->
+
+
+<!-- ═══════════════════════════════════════════════════
+     BÀI 1: Giữa lưng chừng
+     
+     🖼️ Thay ảnh nền: đổi url('...') trong poem-bg
+     🌫️ Đổi độ tối: đổi opacity trong poem-overlay
+     🎨 Đổi màu chữ: đổi data-fg
+     ═══════════════════════════════════════════════════ -->
+<div id="poem-1" class="poem-page"
+  data-fg="#f0e2d0"
+  data-words="Giữa|clamp(4rem,13vw,10rem)|12%|15%|-4deg|0.2s,lưng|clamp(3rem,9vw,7rem)|52%|32%|3deg|0.5s,chừng|clamp(3.5rem,11vw,8.5rem)|22%|58%|-1deg|0.8s"
+>
+  <a class="poem-back" onclick="backToList()">← Trở về</a>
+
+  <!-- 🖼️ HÌNH NỀN — thay url(...) bằng ảnh của bạn -->
+  <div class="poem-bg" style="
+    background-image: url('');
+    background-position: center center;
+    background-size: cover;
+    background-color: #110520;
+  "></div>
+
+  <!-- 🌫️ LỚP PHỦ — đổi background + opacity -->
+  <div class="poem-overlay" style="
+    background: #0a0015;
+    opacity: 0.5;
+  "></div>
+
+  <div class="poem-hero">
+    <span class="hero-date">Tháng 3, 2026</span>
+    <span class="hero-scroll">↓</span>
+  </div>
+
+  <div class="poem-body">
+    <div class="poem-text">
+      <div class="stanza">
+Tôi đứng giữa lưng chừng
+không phải đỉnh cao, không phải vực sâu
+chỉ là một chỗ mà gió
+không biết nên đi hay nên ở lại.
+      </div>
+      <div class="stanza">
+Thành phố phía dưới nhấp nháy
+như ai đó đang cố nói điều gì
+bằng thứ ngôn ngữ tôi từng biết
+nhưng đã quên mất rồi.
+      </div>
+      <div class="stanza">
+Tôi đứng giữa lưng chừng
+và nhận ra đó cũng là
+một nơi.
+      </div>
+    </div>
+
+    <!-- 🖼️ ẢNH TRONG BÀI — bỏ comment, thay src -->
+    <!--
+    <figure class="poem-img">
+      <img src="ten-file-anh.jpg" alt="Mô tả">
+      <figcaption>Chú thích — Tác giả</figcaption>
+    </figure>
+    -->
+
+    <!-- 🎵 NHẠC — bỏ comment, thay src -->
+    <!--
+    <div class="poem-snd">
+      <div class="poem-snd-label">Nghe</div>
+      <audio controls src="ten-file.mp3"></audio>
+    </div>
+    -->
+  </div>
+  <div class="poem-fin">✦</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     BÀI 2: Về nhà
+     ═══════════════════════════════════════════════════ -->
+<div id="poem-2" class="poem-page"
+  data-fg="#2c1810"
+  data-words="Về|clamp(5rem,15vw,12rem)|18%|25%|2deg|0.2s,nhà|clamp(5rem,15vw,12rem)|55%|52%|-3deg|0.6s"
+>
+  <a class="poem-back" style="background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.08);color:#2c1810;" onclick="backToList()">← Trở về</a>
+
+  <div class="poem-bg" style="
+    background-image: url('');
+    background-position: center center;
+    background-size: cover;
+    background-color: #f5ede3;
+  "></div>
+
+  <div class="poem-overlay" style="
+    background: #f5ede3;
+    opacity: 0.4;
+  "></div>
+
+  <div class="poem-hero">
+    <span class="hero-date">Tháng 2, 2026</span>
+    <span class="hero-scroll">↓</span>
+  </div>
+
+  <div class="poem-body">
+    <div class="poem-text">
+      <div class="stanza">
+Con đường quen mà lạ
+hàng cây lớn hơn tôi nhớ
+hay là tôi nhỏ lại
+khi bước qua cánh cổng cũ.
+      </div>
+      <div class="stanza">
+Mẹ ngồi ngoài hiên
+tay vẫn thoăn thoắt
+như chưa từng có đứa con
+đi mười nghìn cây số rồi quay về.
+      </div>
+      <div class="stanza">
+Bà nói: ăn cơm đi
+như thể tôi chỉ vừa
+bước ra khỏi phòng.
+      </div>
+    </div>
+
+    <!--
+    <figure class="poem-img bleed">
+      <img src="ten-file-anh.jpg" alt="Mô tả">
+    </figure>
+    -->
+  </div>
+  <div class="poem-fin" style="color:#2c1810;">✦</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     BÀI 3: Mưa trên mái tôn
+     ═══════════════════════════════════════════════════ -->
+<div id="poem-3" class="poem-page"
+  data-fg="#a8c5d6"
+  data-words="Mưa|clamp(3.5rem,11vw,8.5rem)|14%|18%|-5deg|0.2s,trên|clamp(2.5rem,7vw,5rem)|60%|25%|2deg|0.45s,mái|clamp(3rem,9vw,7rem)|25%|50%|4deg|0.7s,tôn|clamp(4rem,12vw,9.5rem)|58%|65%|-2deg|0.95s"
+>
+  <a class="poem-back" onclick="backToList()">← Trở về</a>
+
+  <div class="poem-bg" style="
+    background-image: url('');
+    background-position: center center;
+    background-size: cover;
+    background-color: #080e1a;
+  "></div>
+
+  <div class="poem-overlay" style="
+    background: #050a14;
+    opacity: 0.5;
+  "></div>
+
+  <div class="poem-hero">
+    <span class="hero-date">Tháng 1, 2026</span>
+    <span class="hero-scroll">↓</span>
+  </div>
+
+  <div class="poem-body">
+    <div class="poem-text">
+      <div class="stanza">
+Mưa rơi trên mái tôn
+tiếng quen đến mức
+tôi tưởng đó là im lặng.
+      </div>
+      <div class="stanza">
+Trong căn phòng nhỏ
+ly cà phê nguội dần
+cuốn sách mở nửa chừng
+và một người đang nghĩ
+về một người khác.
+      </div>
+      <div class="stanza">
+Mưa không hỏi
+mưa không đợi
+mưa chỉ rơi
+cho đến khi tạnh.
+      </div>
+    </div>
+
+    <!--
+    <div class="poem-snd">
+      <div class="poem-snd-label">Nghe tiếng mưa</div>
+      <audio controls src="tieng-mua.mp3"></audio>
+    </div>
+    -->
+  </div>
+  <div class="poem-fin">✦</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════ -->
+<script>
+  function showList() {
+    document.getElementById('homepage').classList.add('hidden');
+    var list = document.getElementById('poem-list-view');
+    list.style.display = 'flex';
+    void list.offsetWidth;
+    list.classList.add('visible');
+  }
+
+  function backToHome() {
+    var list = document.getElementById('poem-list-view');
+    list.classList.remove('visible');
+    setTimeout(function() {
+      list.style.display = 'none';
+      document.getElementById('homepage').classList.remove('hidden');
+    }, 400);
+  }
+
+  function openPoem(id) {
+    var page = document.getElementById(id);
+    if (!page) return;
+
+    var list = document.getElementById('poem-list-view');
+    list.classList.remove('visible');
+    setTimeout(function() { list.style.display = 'none'; }, 300);
+
+    // Apply text color
+    var fg = page.getAttribute('data-fg');
+    page.style.color = fg;
+
+    // Build hero words if not yet built
+    var hero = page.querySelector('.poem-hero');
+    if (hero && hero.querySelectorAll('.hw').length === 0) {
+      var wordsData = page.getAttribute('data-words').split(',');
+      for (var j = 0; j < wordsData.length; j++) {
+        var p = wordsData[j].split('|');
+        var w = document.createElement('span');
+        w.className = 'hw';
+        w.textContent = p[0];
+        w.style.fontSize = p[1];
+        w.style.left = p[2];
+        w.style.top = p[3];
+        w.style.setProperty('--r', p[4]);
+        w.style.animationDelay = p[5];
+        w.style.color = fg;
+        w.style.textShadow = '0 4px 40px rgba(0,0,0,0.4)';
+        hero.appendChild(w);
+      }
+    }
+
+    page.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function backToList() {
+    var pages = document.querySelectorAll('.poem-page');
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].classList.remove('active');
+    }
+    var list = document.getElementById('poem-list-view');
+    list.style.display = 'flex';
+    void list.offsetWidth;
+    list.classList.add('visible');
+    window.scrollTo(0, 0);
+  }
+</script>
+
+</body>
+</html>
