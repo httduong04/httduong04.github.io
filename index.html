@@ -149,9 +149,11 @@
   @media (max-width: 768px) {
     .poem-bg-img {
       position: absolute;
+      width: auto;
       height: 100%;
-      object-fit: cover;
-      object-position: center center;
+      left: 50%;
+      transform: translateX(-50%);
+      object-fit: contain;
     }
   }
 
