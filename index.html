@@ -55,9 +55,10 @@
     cursor: pointer;
     display: inline-block;
     transition: opacity 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
   }
   .home-click:hover,
-.home-click:active { opacity: 0.5; }
+  .home-click:active { opacity: 0.5; }
 
   #poem-list-view {
     min-height: 100vh;
@@ -97,9 +98,11 @@
   .poem-list { list-style: none; }
 
   .poem-item {
-  cursor: pointer;
-  transition: padding-left 0.3s ease;
+    border-top: 1px solid #eee;
+    cursor: pointer;
+    transition: padding-left 0.3s ease;
   }
+  .poem-item:last-child { border-bottom: 1px solid #eee; }
   .poem-item:hover { padding-left: 12px; }
 
   .poem-link {
@@ -115,18 +118,7 @@
     font-size: clamp(1.4rem, 2.5vw, 1.8rem);
     font-weight: 400;
   }
-  .poem-date {
-    font-family: var(--font-poem);
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
-    font-weight: 400;
-    font-style: italic;
-    color: #666;
-    white-space: nowrap;
-    margin-left: 16px;
-}
-  /* ═══════════════════════════════════════
-     TRANG BÀI THƠ
-     ═══════════════════════════════════════ */
+
   .poem-page {
     display: none;
     min-height: 100vh;
@@ -139,7 +131,6 @@
   }
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Ảnh nền parallax — JS sẽ điều khiển vị trí */
   .poem-bg-img {
     position: fixed;
     top: 0;
@@ -151,7 +142,6 @@
     object-position: center 0%;
     pointer-events: none;
   }
-
 
   .poem-back {
     position: fixed;
@@ -236,12 +226,11 @@
     padding: 80px 50px 100px;
   }
 
-  /* Chữ đậm + viền sáng sát chữ thay vì khối mờ lớn */
   .poem-text {
     font-family: var(--font-poem);
-    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    font-size: clamp(1.4rem, 2.6vw, 1.75rem);
     font-weight: 600;
-    line-height: 2.8;
+    line-height: 2.6;
     white-space: pre-line;
     text-shadow:
       0 0 4px rgba(245,237,227,0.7),
@@ -263,7 +252,7 @@
     z-index: 1;
   }
 
- @media (max-width: 768px) {
+  @media (max-width: 768px) {
     .list-header { padding: 30px 24px 0; }
     .list-content { padding: 40px 24px; }
     .poem-link { padding: 24px 6px; }
@@ -365,14 +354,11 @@ nước, đất, cát, sóng, núi, mây, lửa, gỗ
 thật thân thiết
 đã thấy ở mọi nơi, dường như trong mọi cuộc đời
 rồi đây khi ánh lửa trên tay nghỉ tắt
-chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi 
-một ánh đèn dầu.
+chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đèn dầu.
       </div>
     </div>
   </div>
   <div class="poem-fin" style="color:#3a2e22;">✦</div>
-</div>
-<div class="poem-fin" style="color:#3a2e22;">✦</div>
 </div>
 
 
@@ -507,8 +493,6 @@ tôi sẽ thăm mộ cha tôi thật lâu.
 
 
 <script>
-
-<script>
   function showList() {
     document.getElementById('homepage').classList.add('hidden');
     var list = document.getElementById('poem-list-view');
@@ -563,9 +547,6 @@ tôi sẽ thăm mộ cha tôi thật lâu.
     window.scrollTo(0, 0);
   }
 
-  /* Parallax: khi cuộn, ảnh di chuyển chậm hơn chữ
-     Đầu trang = đầu tranh, cuối trang = cuối tranh */
-
   window.addEventListener('scroll', function() {
     var activePage = document.querySelector('.poem-page.active');
     if (!activePage) return;
@@ -586,7 +567,6 @@ tôi sẽ thăm mộ cha tôi thật lâu.
 
     img.style.objectPosition = 'center ' + (percent * 100) + '%';
   });
-
 
   var hash = window.location.hash.replace('#', '');
   if (hash && document.getElementById(hash)) {
