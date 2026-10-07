@@ -955,88 +955,7 @@ tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời
   </div>
   <div class="poem-fin" style="color:#3a2e22;">✦</div>
 </div>
-  <script>
-  function showList() {
-    document.getElementById('homepage').classList.add('hidden');
-    var list = document.getElementById('poem-list-view');
-    list.style.display = 'flex';
-    void list.offsetWidth;
-    list.classList.add('visible');
-  }
-
-  function backToHome() {
-    var list = document.getElementById('poem-list-view');
-    list.classList.remove('visible');
-    window.location.hash = '';
-    setTimeout(function() {
-      list.style.display = 'none';
-      document.getElementById('homepage').classList.remove('hidden');
-    }, 400);
-  }
-
-  function openPoem(id) {
-    var page = document.getElementById(id);
-    if (!page) return;
-
-    var list = document.getElementById('poem-list-view');
-    list.classList.remove('visible');
-    setTimeout(function() { list.style.display = 'none'; }, 300);
-
-    var fg = page.getAttribute('data-fg');
-    var titleColor = page.getAttribute('data-title-color');
-    page.style.color = fg;
-
-    var title = page.querySelector('.poem-hero-title');
-    if (title) title.style.color = titleColor;
-
-    var date = page.querySelector('.poem-hero-date');
-    if (date) date.style.color = fg;
-
-    page.classList.add('active');
-    window.location.hash = id;
-    window.scrollTo(0, 0);
-  }
-
-  function backToList() {
-    var pages = document.querySelectorAll('.poem-page');
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].classList.remove('active');
-    }
-    window.location.hash = '';
-    var list = document.getElementById('poem-list-view');
-    list.style.display = 'flex';
-    void list.offsetWidth;
-    list.classList.add('visible');
-    window.scrollTo(0, 0);
-  }
-
-  window.addEventListener('scroll', function() {
-    var activePage = document.querySelector('.poem-page.active');
-    if (!activePage) return;
-
-    var img = activePage.querySelector('.poem-bg-img');
-    if (!img) return;
-
-    var pageHeight = activePage.scrollHeight;
-    var viewHeight = window.innerHeight;
-    var scrollTop = window.scrollY;
-    var maxScroll = pageHeight - viewHeight;
-
-    if (maxScroll <= 0) return;
-
-    var percent = scrollTop / maxScroll;
-    if (percent < 0) percent = 0;
-    if (percent > 1) percent = 1;
-
-    img.style.objectPosition = 'center ' + (percent * 100) + '%';
-  });
-
-  var hash = window.location.hash.replace('#', '');
-  if (hash && document.getElementById(hash)) {
-    document.getElementById('homepage').classList.add('hidden');
-    openPoem(hash);
-  }
-<!-- BÀI 7: ngày hôm nay bình thường -->
+  <!-- BÀI 7: ngày hôm nay bình thường -->
 <div id="poem-7" class="poem-page"
   data-fg="#f5ede3"
   data-title-color="#f5ede3"
@@ -1168,6 +1087,88 @@ dòng chảy dừng lại nhẹ bẫng
   </div>
   <div class="poem-fin" style="color:#3a2e22;">✦</div>
 </div>
+  <script>
+  function showList() {
+    document.getElementById('homepage').classList.add('hidden');
+    var list = document.getElementById('poem-list-view');
+    list.style.display = 'flex';
+    void list.offsetWidth;
+    list.classList.add('visible');
+  }
+
+  function backToHome() {
+    var list = document.getElementById('poem-list-view');
+    list.classList.remove('visible');
+    window.location.hash = '';
+    setTimeout(function() {
+      list.style.display = 'none';
+      document.getElementById('homepage').classList.remove('hidden');
+    }, 400);
+  }
+
+  function openPoem(id) {
+    var page = document.getElementById(id);
+    if (!page) return;
+
+    var list = document.getElementById('poem-list-view');
+    list.classList.remove('visible');
+    setTimeout(function() { list.style.display = 'none'; }, 300);
+
+    var fg = page.getAttribute('data-fg');
+    var titleColor = page.getAttribute('data-title-color');
+    page.style.color = fg;
+
+    var title = page.querySelector('.poem-hero-title');
+    if (title) title.style.color = titleColor;
+
+    var date = page.querySelector('.poem-hero-date');
+    if (date) date.style.color = fg;
+
+    page.classList.add('active');
+    window.location.hash = id;
+    window.scrollTo(0, 0);
+  }
+
+  function backToList() {
+    var pages = document.querySelectorAll('.poem-page');
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].classList.remove('active');
+    }
+    window.location.hash = '';
+    var list = document.getElementById('poem-list-view');
+    list.style.display = 'flex';
+    void list.offsetWidth;
+    list.classList.add('visible');
+    window.scrollTo(0, 0);
+  }
+
+  window.addEventListener('scroll', function() {
+    var activePage = document.querySelector('.poem-page.active');
+    if (!activePage) return;
+
+    var img = activePage.querySelector('.poem-bg-img');
+    if (!img) return;
+
+    var pageHeight = activePage.scrollHeight;
+    var viewHeight = window.innerHeight;
+    var scrollTop = window.scrollY;
+    var maxScroll = pageHeight - viewHeight;
+
+    if (maxScroll <= 0) return;
+
+    var percent = scrollTop / maxScroll;
+    if (percent < 0) percent = 0;
+    if (percent > 1) percent = 1;
+
+    img.style.objectPosition = 'center ' + (percent * 100) + '%';
+  });
+
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) {
+    document.getElementById('homepage').classList.add('hidden');
+    openPoem(hash);
+  }
+
 
   </script>
 
