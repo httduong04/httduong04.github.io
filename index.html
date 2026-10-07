@@ -301,6 +301,15 @@
       0 0 32px rgba(0,0,0,0.5),
       0 0 60px rgba(0,0,0,0.3);
   }
+#poem-7 .poem-text,
+#poem-7 .poem-hero-title,
+#poem-7 .poem-hero-date {
+  text-shadow:
+    0 0 8px rgba(0,0,0,0.9),
+    0 0 16px rgba(0,0,0,0.7),
+    0 0 32px rgba(0,0,0,0.5),
+    0 0 60px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 <body>
@@ -353,6 +362,11 @@
       <li class="poem-item" onclick="openPoem('poem-6')">
         <a class="poem-link" href="javascript:void(0)">
           <span class="poem-name">tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời</span>
+        </a>
+      </li>
+          <li class="poem-item" onclick="openPoem('poem-7')">
+        <a class="poem-link" href="javascript:void(0)">
+          <span class="poem-name">ngày hôm nay bình thường</span>
         </a>
       </li>
     </ul>
@@ -1022,10 +1036,6 @@ tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời
     document.getElementById('homepage').classList.add('hidden');
     openPoem(hash);
   }
-</script>
-
-</body>
-</html>
 <!-- BÀI 7: ngày hôm nay bình thường -->
 <div id="poem-7" class="poem-page"
   data-fg="#f5ede3"
@@ -1158,3 +1168,8 @@ dòng chảy dừng lại nhẹ bẫng
   </div>
   <div class="poem-fin" style="color:#3a2e22;">✦</div>
 </div>
+
+  </script>
+
+</body>
+</html>
