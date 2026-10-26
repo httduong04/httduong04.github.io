@@ -1,1176 +1,1613 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ba căn phòng: hồ, phá và thơ.">
+<link rel="canonical" href="https://hophatho.ink/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="hồ phá thơ">
+<meta property="og:title" content="hồ phá thơ">
+<meta property="og:description" content="Ba căn phòng: hồ, phá và thơ.">
+<meta property="og:url" content="https://hophatho.ink/">
+<meta property="og:image" content="https://hophatho.ink/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Chữ hồ phá thơ trên ảnh film một cô gái nghiêng mặt sau tấm rèm xanh">
+<meta property="og:locale" content="vi_VN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#121010">
+<link rel="preload" href="chu/hpt-tay.woff2" as="font" type="font/woff2" crossorigin>
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+  html:not(.chinh) .tune, html:not(.chinh) .proto, html:not(.chinh) #panel { display: none !important; }   /* công cụ chỉnh: chỉ cho Nguyên */
+</style>
+<script>
+  (function () {   /* mở hophatho.ink/#chinh một lần trên máy nào thì máy đó hiện nút "chỉnh"; #tat-chinh để ẩn lại */
+    try {
+      if (/tat-chinh/.test(location.hash)) localStorage.removeItem('hpt-chinh');
+      else if (/chinh/.test(location.hash)) localStorage.setItem('hpt-chinh', '1');
+      if (localStorage.getItem('hpt-chinh') === '1') document.documentElement.classList.add('chinh');
+    } catch (e) {}
+  })();
+</script>
 <title>hồ phá thơ</title>
-<meta name="robots" content="noindex, nofollow">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
+
+  /* Phòng "thơ", bước 4: cuộn phim lượn sóng + trang bài thơ.
+     Bấm khung ở giữa: ảnh phóng to, mờ dần, nền chuyển sang màu của bài, lời thơ hiện ra.
+     Cuối bài: ngày tháng như chữ ký, rồi ảnh hiện lại với viền sáng nhấp nháy; bấm ảnh thì ảnh bay về cuộn phim. */
   :root {
-    --white: #fafafa;
-    --black: #2a2a2a;
-    --font-title: 'Playfair Display', Georgia, serif;
-    --font-poem: 'Cormorant Garamond', Georgia, serif;
-    --font-ui: 'Space Grotesk', sans-serif;
+    --bg: #121010;             /* nền phòng, đổi được trong thanh thử */
+    --ink: #f7efe2;            /* trắng ngà, như chữ trang chủ */
+    --cap: 1;                  /* hệ số cỡ chữ tên bài dưới khung */
+    --poem-bg: #121010;        /* nền của bài đang mở */
+    --poem-font: 'Playfair Display';
+    --ui-bg: rgba(24, 21, 19, .9);
+    --ui-rule: rgba(247, 239, 226, .18);
+    --ui-soft: rgba(247, 239, 226, .62);
+    --font-title: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --gutter: 22px;
+    color-scheme: dark;
   }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body { margin: 0; overflow: hidden; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  [hidden] { display: none !important; }
 
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html { -webkit-font-smoothing: antialiased; }
-  body {
-    font-family: var(--font-ui);
-    background: var(--white);
-    color: var(--black);
-    overflow-x: hidden;
+  #reel {
+    position: fixed; inset: 0; width: 100%; height: 100%; display: block;
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    cursor: grab; transition: opacity .8s ease;
   }
+  #reel.dragging { cursor: grabbing; }
+  #reel:focus { outline: none; }
+  #reel.away { opacity: 0; }
 
-  #homepage {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.5s ease;
+  .back {
+    position: fixed; z-index: 4;
+    top: calc(env(safe-area-inset-top, 0px) + clamp(4px, 2.4vw - 8px, 16px)); left: clamp(4px, 2.4vw - 8px, 18px);
+    padding: 13px 12px; font-family: var(--font-title); font-style: italic; font-weight: 400;
+    font-size: clamp(1.05rem, 0.95rem + 0.35vw, 1.3rem); line-height: 1;
+    color: var(--ink-now, var(--ink)); text-decoration: none; opacity: .8; transition: opacity .3s ease;   /* lúc mở bài: theo màu chữ của bài */
   }
-  #homepage.hidden {
+  .back:hover, .back:focus-visible { opacity: 1; }
+  .caption {
+    position: fixed; z-index: 2; left: 50%; transform: translateX(-50%);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(56px, 9vh, 96px));
+    width: min(90vw, 640px); margin: 0; text-align: center; pointer-events: none;
+    font-family: var(--font-title); font-style: italic; line-height: 1.3; text-wrap: balance;
+    font-size: calc(clamp(0.95rem, 0.85rem + 0.45vw, 1.3rem) * var(--cap));
+    transition: opacity .35s ease;
+  }
+  .caption.fading, .caption.moving, .caption.away { opacity: 0; }   /* tên bài ẩn khi cuộn phim đang chạy hoặc khi đang mở bài */
+
+  /* ---------- ảnh bay: dùng khi mở bài (phóng to, mờ dần) và khi trở về (bay về khung giữa) ---------- */
+  .fly { position: fixed; z-index: 5; display: block; max-width: none; pointer-events: none; will-change: transform, opacity; }
+
+  /* ---------- trang bài thơ ---------- */
+  .poem { position: fixed; inset: 0; z-index: 3; overflow: hidden; overflow: clip; background: var(--poem-bg); color: var(--ink); isolation: isolate; }
+  /* nền: ảnh của bài, làm nhòe sẵn lúc dựng trang; một lớp tối (tối nhiều hơn với ảnh sáng) để chữ dễ đọc; một lớp hạt như phim */
+  .p-bg { position: absolute; inset: -4%; background: center / cover no-repeat; }
+  .p-dim { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 35%, rgba(0, 0, 0, .38) 100%), rgba(0, 0, 0, var(--dim, .5)); }
+  .p-grain { position: absolute; inset: -60px; background-size: 160px 160px; opacity: var(--grain, .45); pointer-events: none; }
+  .p-grain.moving { animation: grain .9s steps(1) infinite; }
+  @keyframes grain {
+    0% { transform: translate(0, 0); } 11% { transform: translate(-23px, 14px); } 22% { transform: translate(17px, -31px); }
+    33% { transform: translate(-9px, 27px); } 44% { transform: translate(31px, 9px); } 55% { transform: translate(-29px, -17px); }
+    66% { transform: translate(11px, 33px); } 77% { transform: translate(-37px, 3px); } 88% { transform: translate(23px, -11px); }
+  }
+  .poem.solid .p-bg, .poem.solid .p-dim { display: none; }
+  /* nền chất liệu (giấy, vải) của từng bài: ảnh để nguyên, không nhòe, không phủ tối; nếu cần cho chữ dễ đọc thì phủ
+     một lớp đen hoặc trắng mỏng (thanh "nền tối / sáng"); chữ có màu riêng của bài và một quầng mờ rất nhẹ */
+  .poem.texture .p-bg { inset: 0; }
+  .poem.texture .p-dim { background: var(--veil, transparent); }
+  .poem.texture .poem-inner { text-shadow: var(--poem-shadow, none); }
+  .panel .inkbox { display: grid; gap: 6px; transition: opacity .2s ease; }
+  .panel .inkbox.off { opacity: .45; pointer-events: none; }
+  .panel .ink-h { color: var(--ui-soft); }
+  .panel .ink-list { display: grid; gap: 4px; }
+  .panel .ink-row { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 8px; padding: 3px 8px 3px 4px; border: 1px solid var(--ui-rule); border-radius: 8px; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .panel .ink-row[aria-pressed="true"] { border-color: var(--ink); }
+  .panel .ink-sw { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(247, 239, 226, .35); }
+  .panel .ink-ok { color: var(--ui-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .panel .ink-row input[type=color] { width: 20px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; }
+  /* ảnh ẩn sau bài thơ (theo inspo Infinite Scroll Gallery của Surya Aditya trên Codrops):
+     một cột ảnh so le trái phải, mỗi ảnh trôi chậm hơn chữ một mức khác nhau nên trông như nằm sâu phía sau,
+     chạy vòng không hết, mờ dần hiện ra khi vào màn hình */
+  .p-gallery { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .g-item { position: absolute; top: 0; overflow: hidden; opacity: 0; transition: opacity 1.2s ease; will-change: transform, opacity; }
+  .g-item.in { opacity: var(--g-op, .5); }
+  .g-item img { display: block; width: 100%; height: 100%; max-width: none; object-fit: cover; transform: scale(1.2); filter: brightness(.85) saturate(.9); will-change: transform; }
+  .poem.has-gallery .poem-inner { text-shadow: var(--poem-shadow, 0 0 14px rgba(0, 0, 0, .55), 0 0 2px rgba(0, 0, 0, .35)); }
+  /* lớp chữ cuộn; mép trên mờ dần để chữ cuộn lên không đè lên nút "trở về" */
+  .p-scroll {
+    position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to bottom, transparent calc(env(safe-area-inset-top, 0px) + 28px), #000 calc(env(safe-area-inset-top, 0px) + 96px));
+            mask-image: linear-gradient(to bottom, transparent calc(env(safe-area-inset-top, 0px) + 28px), #000 calc(env(safe-area-inset-top, 0px) + 96px));
+  }
+  .p-scroll:focus { outline: none; }
+  .poem-inner {
+    width: fit-content; max-width: min(calc(100vw - 2 * var(--gutter)), 40em);
+    margin: 0 auto; padding: max(24vh, 120px) 0 0;
+    font-family: var(--poem-font), Georgia, 'Times New Roman', serif; font-weight: 400; line-height: 1.75;
+    font-size: var(--poem-size, 18px);
+  }
+  .p-title { margin: 0 0 2.6em; font: italic 400 1.15em/1.3 var(--font-title); text-wrap: balance; opacity: .9; }
+  .st { margin: 0 0 1.6em; }
+  .st:last-child { margin-bottom: 0; }
+  /* mỗi dòng thơ một khối; dòng quá dài thì xuống dòng thụt vào 1,4em, để người đọc biết đó vẫn là một dòng */
+  .l { display: block; white-space: pre-wrap; padding-left: 1.4em; text-indent: -1.4em; text-wrap: pretty; overflow-wrap: break-word; }
+  .l:empty::before { content: '\200b'; }
+  .l.stair { white-space: nowrap; text-indent: 0; }   /* lề trái do layoutStairs() đặt */
+  /* bài viết tay nguyên trang (haiku "mướp chín", "lông tay"): nét mực Nguyên viết, giữ nguyên bố cục, tô bằng màu chữ của bài */
+  .ink-poem { display: block; max-width: 100%; background: currentColor; -webkit-mask: var(--ink-src) center / contain no-repeat; mask: var(--ink-src) center / contain no-repeat; }
+  .p-date:empty { display: none; }   /* dòng trống trong bài (chỗ tác giả để cách nhiều dòng) vẫn giữ đủ một dòng */
+  .p-date { margin: 3em 0 0; text-align: right; font-style: italic; font-size: .92em; opacity: .85; }
+
+  /* ---------- chữ tay: font dựng từ chữ viết tay của Nguyên trên vở ô ly (26/10/2026) ----------
+     Mỗi chữ có 5 đến 6 bản viết, dấu có 2 bản; mỗi bài bốc sẵn một bản cho từng chữ và giữ cố định.
+     Tên bài, lời thơ, ngày tháng và tên bài dưới cuộn phim đều dùng chữ tay. */
+  @font-face { font-family: 'HPT Tay'; src: url('chu/hpt-tay.woff2') format('woff2'); font-display: block; }
+  .hand .p-title { font: 400 1.5em/2.4 'HPT Tay', var(--font-title); margin: -.6em 0 1.2em; padding: .6em 0 .4em; }   /* to hơn lời thơ như trước (chữ tay có phần thân nhỏ hơn Playfair) */
+  .hand .p-date { font-style: normal; font-size: 1em; margin: 2.5em 0 -.5em; padding: .5em 0; }
+  .hand .caption { font-family: 'HPT Tay', var(--font-title); font-style: normal; line-height: 1.7; font-size: calc(clamp(0.95rem, 0.85rem + 0.45vw, 1.3rem) * 1.4 * var(--cap)); padding: .8em 0 1em; margin-bottom: -1em; }
+  /* chữ tay có vòng trên cao, đuôi dưới dài vượt khỏi dòng: chừa khoảng đệm quanh tên bài, ngày tháng để Safari không cắt ngọn chữ (27/10) */
+  /* bản viết thứ mấy của chữ và dấu (cv01–cv11) */
+  .f1 { font-feature-settings: "cv01"; } .f2 { font-feature-settings: "cv02"; } .f3 { font-feature-settings: "cv03"; } .f4 { font-feature-settings: "cv04"; } .f5 { font-feature-settings: "cv05"; } .f6 { font-feature-settings: "cv06"; } .f7 { font-feature-settings: "cv07"; } .f8 { font-feature-settings: "cv08"; } .f9 { font-feature-settings: "cv09"; } .f10 { font-feature-settings: "cv10"; } .f11 { font-feature-settings: "cv11"; }
+  /* chữ in hoa Nguyên viết riêng, cho chữ viết tắt toàn chữ hoa như LGBTQIA (ss02) */
+  .pr { font-feature-settings: "ss02"; }
+  /* dạng cuối từ, đuôi dài (cv20–cv31) */
+  .c20 { font-feature-settings: "cv20"; } .c21 { font-feature-settings: "cv21"; } .c22 { font-feature-settings: "cv22"; } .c23 { font-feature-settings: "cv23"; } .c24 { font-feature-settings: "cv24"; } .c25 { font-feature-settings: "cv25"; } .c26 { font-feature-settings: "cv26"; } .c27 { font-feature-settings: "cv27"; } .c28 { font-feature-settings: "cv28"; } .c29 { font-feature-settings: "cv29"; } .c30 { font-feature-settings: "cv30"; } .c31 { font-feature-settings: "cv31"; }
+  .p-end-wrap { display: grid; place-items: center; padding: 22vh var(--gutter) 26vh; }
+  .p-end {
+    position: relative; display: block; width: min(72vw, 460px); padding: 0; border: 0; background: none; cursor: pointer;
+    color: var(--ink); opacity: 0; transform: scale(.965); transition: opacity 1.4s ease, transform 1.4s ease;
+  }
+  .p-end.shown { opacity: 1; transform: none; }
+  .p-end img { display: block; width: 100%; height: auto; max-width: none; aspect-ratio: 3 / 2; object-fit: cover; }
+  /* viền sáng thở chậm: từ không có gì, sáng nhẹ, sáng rõ, rồi tắt hẳn và nghỉ một chút trước nhịp sau */
+  .p-end::after {
+    content: ''; position: absolute; inset: -1px; pointer-events: none;
+    border: 1px solid currentColor; box-shadow: 0 0 22px 0 currentColor;
     opacity: 0;
-    pointer-events: none;
-    position: absolute;
-    width: 100%;
+  }
+  .p-end.shown::after { animation: breathe var(--glow-time, 6s) linear 1.4s infinite; }
+  @keyframes breathe {
+    0% { opacity: calc(var(--glow) * 0.000); }
+    5% { opacity: calc(var(--glow) * 0.034); }
+    10% { opacity: calc(var(--glow) * 0.130); }
+    15% { opacity: calc(var(--glow) * 0.277); }
+    20% { opacity: calc(var(--glow) * 0.454); }
+    25% { opacity: calc(var(--glow) * 0.637); }
+    30% { opacity: calc(var(--glow) * 0.801); }
+    35% { opacity: calc(var(--glow) * 0.925); }
+    40% { opacity: calc(var(--glow) * 0.991); }
+    45% { opacity: calc(var(--glow) * 0.991); }
+    50% { opacity: calc(var(--glow) * 0.925); }
+    55% { opacity: calc(var(--glow) * 0.801); }
+    60% { opacity: calc(var(--glow) * 0.637); }
+    65% { opacity: calc(var(--glow) * 0.454); }
+    70% { opacity: calc(var(--glow) * 0.277); }
+    75% { opacity: calc(var(--glow) * 0.130); }
+    80% { opacity: calc(var(--glow) * 0.034); }
+    85% { opacity: calc(var(--glow) * 0.000); }
+    100% { opacity: 0; }
+  }
+  .p-end:focus-visible { outline: none; }
+  .p-end:focus-visible::after { opacity: var(--glow); animation: none; }
+
+  /* ---------- thanh thử (không thuộc trang thật) ---------- */
+  .proto {
+    position: fixed; z-index: 6; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    width: max-content; max-width: calc(100vw - 24px);
+    background: var(--ui-bg); color: var(--ink); border: 1px solid var(--ui-rule); border-radius: 14px;
+    font: 12px/1.35 var(--font-ui); padding: 7px 9px; display: grid; gap: 8px; justify-items: end;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  .proto button, .proto input { font: inherit; color: inherit; }
+  .tune { border: 1px solid var(--ui-rule); background: transparent; border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+  .panel { display: grid; gap: 7px; width: min(300px, calc(100vw - 48px)); max-height: calc(100vh - 90px); overflow-y: auto; overscroll-behavior: contain; }
+  .panel h2 { margin: 4px 0 0; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ui-soft); font-weight: 600; }
+  .panel label { display: grid; grid-template-columns: 7.2em 1fr 3.2em; align-items: center; gap: 8px; color: var(--ui-soft); }
+  .panel input[type=range] { width: 100%; min-width: 0; accent-color: var(--ink); }
+  .panel output { font-variant-numeric: tabular-nums; text-align: right; }
+  .colors { display: grid; grid-template-columns: 7.2em 1fr; align-items: center; gap: 8px; color: var(--ui-soft); }
+  .sw { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .sw button { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--ui-rule); padding: 0; cursor: pointer; }
+  .sw button[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .sw input[type=color] { width: 30px; height: 22px; border: 1px solid var(--ui-rule); border-radius: 6px; padding: 0 2px; background: transparent; cursor: pointer; }
+  .seg { display: flex; gap: 5px; flex-wrap: wrap; }
+  .seg button { border: 1px solid var(--ui-rule); background: transparent; border-radius: 999px; padding: 3px 9px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: #1a1714; border-color: var(--ink); }
+  .note { margin: 0; color: var(--ui-soft); font-size: 11px; max-width: 28em; }
+  .reset { justify-self: start; border: 0; background: none; text-decoration: underline; color: var(--ui-soft); cursor: pointer; padding: 0; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) {
+    .caption, #reel, .p-end { transition: none; }
+    .p-end.shown::after { animation: none; opacity: calc(var(--glow) * .7); }
+    .p-grain.moving { animation: none; }
+    .g-item { transition: none; }
   }
 
-  .home-title {
-    font-family: var(--font-title);
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    text-align: center;
-    user-select: none;
-  }
 
-  .home-click {
-    cursor: pointer;
-    display: inline-block;
-    transition: opacity 0.3s ease;
-    -webkit-tap-highlight-color: transparent;
+  /* ================= trang chủ (giữ đúng các lựa chọn đã chốt ngày 9/10) ================= */
+  .home {
+    position: fixed; inset: 0; z-index: 8; height: 100vh; height: 100dvh; overflow: hidden;
+    background: #beb295;                     /* màu trung bình của ảnh, hiện trong lúc ảnh chưa tải */
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
-  .home-click:hover,
-  .home-click:active { opacity: 0.5; }
-
-  #poem-list-view {
-    min-height: 100vh;
-    display: none;
-    flex-direction: column;
-    opacity: 0;
-    transition: opacity 0.5s ease;
+  .home-img, #gl { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block; }
+  .home-img { object-fit: cover; object-position: 50% 50%; }
+  #gl { opacity: 0; transition: opacity .6s ease; }
+  #gl.ready { opacity: 1; }
+  .title {
+    position: absolute; margin: 0;
+    left: max(12px, 4vw); top: 50%; transform: translateY(-50%);
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; font-weight: 400;
+    font-size: calc(clamp(2.8rem, 15vw, 9rem) * 1.15);
+    line-height: 1.05; letter-spacing: -0.01em; white-space: nowrap;
+    color: #f7efe2; pointer-events: none;
   }
-  #poem-list-view.visible {
-    display: flex;
-    opacity: 1;
+  /* ba chữ là ba cánh cửa: rê chuột (hoặc chạm) thì chữ tan ra, thành nước trong suốt vẽ bằng WebGL ở lớp ảnh phía dưới */
+  .title .w { color: inherit; text-decoration: none; pointer-events: auto; cursor: default; -webkit-tap-highlight-color: transparent;
+              transition: color var(--wt, .45s) ease; }
+  .title .w.door { cursor: pointer; }
+  .title .w.water { color: rgba(247, 239, 226, 0); }
+  .door:focus-visible { outline: 2px solid #f7efe2; outline-offset: 6px; }
+  .home .proto { top: calc(env(safe-area-inset-top, 0px) + 12px); bottom: auto; }
+
+  /* ================= phòng hồ: chạy trong một khung riêng, chỉ tạo khi bước vào, bỏ đi khi ra ================= */
+  .ho-wrap { position: fixed; inset: 0; z-index: 9; background: #050807; }
+  .ho-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+
+  /* ================= chuyển cảnh giữa trang chủ và phòng ================= */
+  .home, .room, .ho-wrap { transition: opacity .7s ease, visibility 0s linear 0s; }
+  .home.off, .room.off, .ho-wrap.off { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .7s ease, visibility 0s linear .7s; }
+  @media (prefers-reduced-motion: reduce) {
+    .home, .room, .ho-wrap, .home.off, .room.off, .ho-wrap.off { transition-duration: .01s !important; transition-delay: 0s !important; }
   }
-
-  .list-header { padding: 50px 50px 0; }
-
-  .list-back {
-    font-size: 1.1rem;
-    cursor: pointer;
-    color: #bbb;
-    transition: color 0.3s;
-    background: none;
-    border: none;
-    padding: 0;
-    line-height: 1;
-  }
-  .list-back:hover { color: var(--black); }
-
-  .list-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 60px 50px;
-    max-width: 800px;
-  }
-
-  .poem-list { list-style: none; }
-
-  .poem-item {
-    border-top: 1px solid #eee;
-    cursor: pointer;
-    transition: padding-left 0.3s ease;
-  }
-  .poem-item:last-child { border-bottom: 1px solid #eee; }
-  .poem-item:hover { padding-left: 12px; }
-
-  .poem-link {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 30px 8px;
-    text-decoration: none;
-    color: inherit;
-  }
-  .poem-name {
-    font-family: var(--font-poem);
-    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
-    font-weight: 400;
-  }
-
-  .poem-page {
-    display: none;
-    min-height: 100vh;
-    position: relative;
-    overflow: hidden;
-  }
-  .poem-page.active {
-    display: block;
-    animation: pageIn 0.8s ease forwards;
-  }
-  @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
-
-  .poem-bg-img {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
-    object-fit: cover;
-    object-position: center 0%;
-    pointer-events: none;
-  }
-
-  .poem-back {
-    position: fixed;
-    top: 28px;
-    left: 28px;
-    z-index: 200;
-    font-size: 1.3rem;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
-    text-decoration: none;
-    background: none;
-    border: none;
-    padding: 0;
-    line-height: 1;
-    opacity: 0.4;
-  }
-  .poem-back:hover { opacity: 0.9; }
-
-  .poem-hero {
-    position: relative;
-    z-index: 1;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .poem-hero-title {
-    font-family: var(--font-poem);
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.3;
-    letter-spacing: 0.01em;
-    opacity: 0;
-    animation: gentleIn 1.2s 0.2s ease forwards;
-    font-size: clamp(1.8rem, 3.5vw, 2.4rem);
-    text-shadow:
-      0 0 6px rgba(245,237,227,0.4),
-      0 0 12px rgba(245,237,227,0.3),
-      0 0 24px rgba(245,237,227,0.2);
-  }
-
-  @keyframes gentleIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .poem-hero-date {
-    font-family: var(--font-ui);
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    opacity: 0;
-    animation: gentleIn 1s 0.8s ease forwards;
-    text-shadow:
-      0 0 6px rgba(245,237,227,0.8),
-      0 0 12px rgba(245,237,227,0.5);
-  }
-
-  .hero-scroll {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 1.3rem;
-    opacity: 0;
-    animation: bob 2.5s 2s infinite;
-    z-index: 2;
-  }
-  @keyframes bob {
-    0%,100% { opacity: 0.12; transform: translateX(-50%) translateY(0); }
-    50% { opacity: 0.4; transform: translateX(-50%) translateY(6px); }
-  }
-
-  .poem-body {
-    position: relative;
-    z-index: 1;
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 80px 50px 100px;
-  }
-
-  .poem-text {
-    font-family: var(--font-poem);
-    font-size: clamp(1.4rem, 2.6vw, 1.75rem);
-    font-weight: 600;
-    line-height: 2.6;
-    white-space: pre-line;
-    text-shadow:
-      0 0 4px rgba(245,237,227,0.7),
-      0 0 8px rgba(245,237,227,0.6),
-      0 0 16px rgba(245,237,227,0.4),
-      0 0 30px rgba(245,237,227,0.2);
-  }
-
-  .stanza { margin-bottom: 2.8em; }
-
-  .poem-fin {
-    text-align: center;
-    padding: 100px 40px 120px;
-    font-family: var(--font-poem);
-    font-size: 1.5rem;
-    opacity: 0.1;
-    letter-spacing: 0.4em;
-    position: relative;
-    z-index: 1;
-  }
-
-  @media (max-width: 768px) {
-    .list-header { padding: 30px 24px 0; }
-    .list-content { padding: 40px 24px; }
-    .poem-link { padding: 24px 6px; }
-    .poem-body { padding: 40px 20px 60px; }
-    .poem-back { top: 18px; left: 18px; }
-
-    .poem-bg-img {
-      position: fixed;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      object-position: center center;
-    }
-
-    .poem-text {
-      font-size: 1rem;
-      line-height: 2.4;
-    }
-
-    .poem-hero-title {
-      font-size: 1.5rem;
-      padding: 0 20px;
-    }
-  }
-
-  @media (max-width: 400px) {
-    .poem-text {
-      font-size: 0.9rem;
-    }
-  }
-#poem-2 .poem-text,
-#poem-2 .poem-hero-title,
-#poem-2 .poem-hero-date {
-  text-shadow:
-    0 0 8px rgba(0,0,0,0.9),
-    0 0 16px rgba(0,0,0,0.7),
-    0 0 32px rgba(0,0,0,0.5),
-    0 0 60px rgba(0,0,0,0.3);
-}
-#poem-5 .poem-text,
-  #poem-5 .poem-hero-title,
-  #poem-5 .poem-hero-date {
-    text-shadow:
-      0 0 8px rgba(0,0,0,0.9),
-      0 0 16px rgba(0,0,0,0.7),
-      0 0 32px rgba(0,0,0,0.5),
-      0 0 60px rgba(0,0,0,0.3);
-  }
-#poem-7 .poem-text,
-#poem-7 .poem-hero-title,
-#poem-7 .poem-hero-date {
-  text-shadow:
-    0 0 8px rgba(0,0,0,0.9),
-    0 0 16px rgba(0,0,0,0.7),
-    0 0 32px rgba(0,0,0,0.5),
-    0 0 60px rgba(0,0,0,0.3);
-}
 </style>
-</head>
-<body>
 
-<div id="homepage">
-  <h1 class="home-title">
-    <span>hồ phá </span><span class="home-click" onclick="showList()">thơ</span>
-  </h1>
-</div>
-
-
-<div id="poem-list-view">
-  <header class="list-header">
-    <button class="list-back" onclick="backToHome()">←</button>
-  </header>
-
-  <main class="list-content">
-    <ul class="poem-list">
-
-      <li class="poem-item" onclick="openPoem('poem-1')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">sông trăng tiêu điều</span>
-        </a>
-      </li>
-
-      <li class="poem-item" onclick="openPoem('poem-2')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">thăm mộ</span>
-          
-        </a>
-      </li>
-
-      <li class="poem-item" onclick="openPoem('poem-3')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">một đứa trẻ</span>
-        </a>
-      </li>
-
-  <li class="poem-item" onclick="openPoem('poem-4')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">về người tôi ghét một nửa</span>
-        </a>
-      </li>  
- <li class="poem-item" onclick="openPoem('poem-5')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">cây ớt</span>
-        </a>
-      </li>
-
-      <li class="poem-item" onclick="openPoem('poem-6')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời</span>
-        </a>
-      </li>
-          <li class="poem-item" onclick="openPoem('poem-7')">
-        <a class="poem-link" href="javascript:void(0)">
-          <span class="poem-name">ngày hôm nay bình thường</span>
-        </a>
-      </li>
-    </ul>
-  </main>
-</div>
-
-
-<!-- BÀI 1: sông trăng tiêu điều -->
-<div id="poem-1" class="poem-page"
-  data-fg="#3a2e22"
-  data-title-color="#2c1810"
->
-  <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi-painting-1.JPG" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">sông trăng tiêu điều</h2>
-    <span class="poem-hero-date">Tháng 9, 2025</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-sông trăng tiêu điều
-đò ơi, đèn cày của tôi đã cháy gần hết
-ánh sáng thật đẹp đẽ 
-gió nâng niu ngọn lửa bé nhỏ, đừng sợ
-thật ấm áp, đừng sợ
-đã bao giờ tôi rời khỏi ánh sáng đủ lâu để biết bóng tối là gì?
-chúng ta vẫn luôn được cả hai ấp ôm một thể
-khi đi dạo trên con đường cỏ đất mòn
-trăng cứ đi theo nhắc nhở hẳn còn ở đây
-những buổi sáng ngày
-mà đôi mắt cứ nhắm nghiền lại
-là thế
-ở trong nhau để trọn vẹn là thế
-nước, đất, cát, sóng, núi, mây, lửa, gỗ
-thật thân thiết
-đã thấy ở mọi nơi, dường như trong mọi cuộc đời
-rồi đây khi ánh lửa trên tay nghỉ tắt
-chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đèn dầu.
-      </div>
+<main class="home" id="home">
+  <img class="home-img" id="img" alt="Ảnh film mờ: nghiêng mặt một cô gái tóc mái, sau tấm rèm xanh, ánh sáng hồng nhạt" src="anh/trang-chu.jpg">
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <h1 class="title" id="title"><a class="w door" id="doorHo" href="#ho" aria-label="hồ: vào phòng hồ">hồ</a> <a class="w door" id="doorPha" href="#pha" aria-label="phá: vào phòng phá">phá</a> <a class="w door" id="doorTho" href="#tho" aria-label="thơ: vào phòng thơ">thơ</a></h1>
+  <nav class="proto" aria-label="Điều khiển bản thử (trang chủ)">
+    <button type="button" class="tune" id="hTune" aria-expanded="false" aria-controls="hPanel">chỉnh</button>
+    <div class="panel" id="hPanel" hidden>
+      <h2>chữ hóa nước</h2>
+      <label for="hRefr">khúc xạ <input type="range" id="hRefr" min="0" max="250"><output id="hRefrOut"></output></label>
+      <label for="hWob">núng nính <input type="range" id="hWob" min="0" max="250"><output id="hWobOut"></output></label>
+      <label for="hRip">gợn sóng <input type="range" id="hRip" min="0" max="250"><output id="hRipOut"></output></label>
+      <label for="hGloss">ánh bóng <input type="range" id="hGloss" min="0" max="250"><output id="hGlossOut"></output></label>
+      <label for="hSoft">độ tròn mép <input type="range" id="hSoft" min="40" max="250"><output id="hSoftOut"></output></label>
+      <label for="hTime">thời gian tan <input type="range" id="hTime" min="0.15" max="1.5" step="0.05"><output id="hTimeOut"></output></label>
+      <p class="note">Rê chuột vào một chữ để chữ hóa nước. Bấm "hồ", "phá" hoặc "thơ" để vào phòng. Trên điện thoại: chạm một lần, chữ hóa nước, gợn một nhịp rồi vào phòng.</p>
+      <p class="note" id="hLog" hidden></p>
+      <button type="button" class="reset" id="hReset">về mặc định</button>
     </div>
+  </nav>
+</main>
+
+<div class="ho-wrap off" id="hoWrap" aria-hidden="true"></div>
+<div class="ho-wrap off" id="phaWrap" aria-hidden="true"></div>
+
+<div class="room off" id="room" aria-hidden="true">
+
+
+<canvas id="reel" aria-label="Cuộn phim các bài thơ. Cuộn, vuốt hoặc kéo để xem; phím mũi tên trái phải để chuyển bài, Enter để mở bài ở giữa." tabindex="0"></canvas>
+<p class="caption" id="caption" aria-live="polite"></p>
+
+<div class="poem" id="poem" hidden>
+  <div class="p-bg" id="pBg"></div>
+  <div class="p-dim" id="pDim"></div>
+  <div class="p-gallery" id="pGallery"></div>
+  <div class="p-grain" id="pGrain"></div>
+  <article class="p-scroll" id="pScroll" tabindex="-1" aria-labelledby="pTitle">
+  <div class="poem-inner" id="pInner">
+    <h1 class="p-title" id="pTitle"></h1>
+    <div class="p-body" id="pBody"></div>
+    <p class="p-date" id="pDate"></p>
   </div>
-  <div class="poem-fin" style="color:#3a2e22;">✦</div>
+  <div class="p-end-wrap">
+    <button type="button" class="p-end" id="pEnd" aria-label="Trở về cuộn phim"><img id="pEndImg" alt=""></button>
+  </div>
+  </article>
 </div>
+<img class="fly" id="fly" alt="" hidden>
 
+<a class="back" href="#" id="back" aria-label="Trở về">‹ trở về</a>
 
-<!-- BÀI 2: thăm mộ -->
-<div id="poem-2" class="poem-page"
-  data-fg="#f5ede3"
-data-title-color="#f5ede3"
->
-  <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi-picture-1.jpg" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">thăm mộ</h2>
-    <span class="poem-hero-date">Tháng 7, 2025</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-khi nửa đêm thức giấc
-tôi hỏi mèo con đang rù rì bên cạnh
-liệu nó có muốn một ngày cùng đi thăm mộ những con mèo mà tôi đã từng nuôi không
-mộ của chúng nằm dưới một gốc thông già
-gốc thông đã già, bị thương, bị bệnh
-rồi chết
-cũng giống như cha tôi
-ông nằm ngay bên cạnh
-      </div>
-
-      <div class="stanza">
-tôi tạm rời quê hương 
-không mang theo một lời chửi rủa nào
-đêm đêm khi tôi nhìn thành phố từ dưới thấp
-hồn tôi là một con côn trùng vo ve
-vo ve, vo ve, vo ve
-những tiếng đập cánh liên hồi khắc khoải
-mãi không chạm được mặt trời
-mãi mãi chỉ là bóng đèn
-côn trùng vo ve sống từng đám
-bầy đàn rao giảng về khoảng thời gian để sống còn lại
-      </div>
-
-      <div class="stanza">
-một tiếng kèn xe
-      </div>
-
-      <div class="stanza">
-tôi tự hỏi ngoài kia người ta làm gì để viết
-tôi tự hỏi, ai muốn người khác đọc được những trần trụi của mình
-tôi chưa từng viết ra hết thảy
-có một ngày
-ngồi trước mộ cha tôi - một người đã chết
-tôi giấu nhẹm đi những điều lẽ ra nếu muốn thì tôi hoàn toàn có thể nói
-tôi chỉ ca vài câu
-tôi ngắt một nhánh cỏ
-      </div>
-
-      <div class="stanza">
-một con muỗi đốt vào chân tôi
-mà hình như loài muỗi, chúng đốt mỗi ngày
-và cỏ cây
-cỏ cây bị ngắt, chặt đi mỗi ngày
-quán xá bán buôn mỗi ngày
-đắp bồi đục khoét bê tông cốt thép mỗi ngày
-sóng vỗ bờ mỗi ngày
-gió thổi mỗi ngày
-những đám lửa cháy mỗi ngày
-tất cả chúng khi lớn khi bé, khi to khi nhỏ
-khi âm ỉ, khi lại thật khoan thai
-con người chết đi
-chúng ta yêu một người đã không còn             mỗi ngày
-hãy nhìn xem
-những rung rinh đời sống
-vẫn lung linh sống động 
-dù bầu trời có rách toang mỗi ngày
-      </div>
-
-      <div class="stanza">
-tôi vẫn hát một bài hát
-tôi nghĩ rằng tôi chưa bao giờ có thể hiểu được
-tôi (chỉ) hát như ru ngủ
-cha của tôi đã ngủ thật yên
-tại sao cuộc đời lại để tôi xuất hiện ở đây, trước mộ của cha
-để khi tôi trở về
-ké đầu ngựa và cỏ xước bám trên từng xớ vải áo quần
-níu chân
-nhìn ra phía xa, thấy một huyệt mộ vừa được đào
-lại một người cũ mới nằm xuống
-còn bọn xin đểu tiền chăm mộ
-nếu không cho e chúng sẽ phá mộ phần
-tôi vẫn sợ hãi chúng như sợ một định đoạt
-"bài thơ này quá dài!" - ôi không người ơi đây chỉ là một lời tự sự
-"bài hát này nghe giống ông kia" - ôi không người ơi đây chỉ là một lời tự sự
-"bức tranh này bố cục lủng lẳng" - ôi không người ơi đây chỉ là một lời tự sự
-"tượng này xấu"
-"món này dở"
-"đàn lệch nhịp rồi" - ôi không người ơi đấy chỉ là một lời tự sự
-"mày yêu ông ấy lắm mới nói chuyện trước mộ nhiều giờ như thế, đưa tiền đây" - ôi không người ơi tôi chỉ đang tự sự
-hay                mọi lời tự sự đều như nhau?
-      </div>
-
-      <div class="stanza">
-ở tuổi hai mươi
-tôi học được cách rù rì như mèo, thủ thỉ như đi thăm mộ
-tôi học được cách chửi cho thật đã cuộc đời chó má khi thấy ứ đọng lồng ngực
-đó là khi những tác phẩm đã quá tải
-tôi học được cách linh hoạt những bản thể 
-tôi học được cách bắt chước
-như một lẽ tự nhiên
-tôi tìm về mộ cha khi thấy nhớ
-thấy thương
-thấy một miền thuỳ dương cát trắng
-thấy nắng thấy mưa
-thấy một cuộc sống đủ vừa
-rồi tôi sẽ không còn thấy sợ hãi
-bọn xin tiền chăm mộ
-bọn bầy đàn rao giảng về thời gian
-bất kì ai
-tôi sẽ có thể đứng, ngồi, nằm
-bao lâu tuỳ tôi định đoạt
-tôi sẽ viết thật lâu
-tôi sẽ vẽ thật lâu
-tôi sẽ hát thật lâu
-tôi sẽ thăm mộ cha tôi thật lâu.
-      </div>
+<nav class="proto" aria-label="Điều khiển bản thử">
+  <div class="panel" id="panel" hidden>
+    <h2>cuộn phim</h2>
+    <div class="colors"><span>màu nền</span>
+      <div class="sw" id="bgSw"><input type="color" id="bgPick" aria-label="Chọn màu nền tự do"></div>
     </div>
-  </div>
-  <div class="poem-fin" style="color:#3a2e22;">✦</div>
-<div class="poem-fin" style="color:#3a2e22;">✦</div>
-</div>
-
-
-<!-- BÀI 3: một đứa trẻ -->
-<div id="poem-3" class="poem-page"
-  data-fg="#3a2e22"
-  data-title-color="#2c1810"
->
-  <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi-picture-2.JPG" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">một đứa trẻ</h2>
-    <span class="poem-hero-date">Tháng 7, 2025</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-tôi được sinh ra bởi mẹ, tôi là một đứa trẻ
-tôi lớn lên và đi học, tôi là một đứa trẻ
-tôi đánh vần, làm toán ngây ngô, tôi là một đứa trẻ
-tôi biết thích và ghét bạn bè, tôi là một đứa trẻ
-tôi biết ăn cắp lần đầu, tôi là một đứa trẻ
-tôi thòm thèm quà vặt, tôi là một đứa trẻ
-tôi thấy đau nhói ở ngực lúc đi tắm biển, tôi là một đứa trẻ
-tôi mọc lông ở nách và vùng kín, tôi là một đứa trẻ
-tôi xưng tội với Chúa ở trong nhà thờ mà lại dối gạt, tôi là một đứa trẻ
-tôi biết yêu lần đầu
-tôi căm thù
-tôi vị tha 
-tôi tốt nghiệp, tôi thất nghiệp
-tôi đọc sách
-tôi sinh con đẻ cái, tôi là một đứa trẻ
-con tôi là một đứa trẻ
-mẹ tôi là một đứa trẻ
-và
-bà ngoại tôi là một đứa trẻ
-ông ngoại tôi là một đứa trẻ
-ba tôi là một đứa trẻ
-ông bà nội tôi là hai đứa trẻ
-họ đã chết dưới hình hài một người lớn xác và trái tim họ cằn cỗi chi chít những vết
-sần 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sùi
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chai
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sạn
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;khô 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hạn 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xước
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;trầy
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rách
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thủng
-ấy vậy mà linh hồn họ tựa một con chim lông còn ướt ối với bàn chân yếu ớt chỉ vừa mới phá vỡ lớp vỏ
-không thể biết được cuộc đời
-khi con chim ấy dang rộng đôi cánh trên trời
-cũng là lúc xác thân vùi vào lòng đất
-hay tan thành tro bụi
-      </div>
-
-      <div class="stanza">
-những đứa trẻ này đã sinh ra những đứa trẻ khác
-đứa trẻ như tôi sẽ hoặc không sinh thêm những đứa trẻ khác (đó là câu chuyện của thời đại)
-nếu có, rất có thể tôi sẽ sinh ra
-một đứa trẻ cha sứ
-một đứa trẻ bán cơm
-một đứa trẻ ăn uống trên mạng
-một đứa trẻ giáo viên
-một đứa trẻ chết yểu
-một đứa trẻ khó tiêu
-một đứa trẻ bác sĩ
-một đứa trẻ biến thái
-một đứa trẻ bắt chước
-một đứa trẻ LGBTQIA+
-một đứa trẻ bánh mì đặc ruột bánh mì nóng đây
-một đứa trẻ viết thơ viết nhạc
-một đứa trẻ ước mơ làm người lớn
-một đứa trẻ tù nhân
-một đứa trẻ ngoại tình
-một đứa trẻ du học sinh
-      </div>
-
-      <div class="stanza">
-ôi, tôi muốn kêu gọi những đứa trẻ hãy thôi gồng mình, hãy ôm lấy nhân tính nguyên sơ
-đồng thời tôi cũng ghét một đứa trẻ hay kêu gọi vô bổ như tôi lúc này
-nếu có đứa nào tôi không ưa mà như thế thì tôi ghét và nó nhận nó là một đứa trẻ thì tôi chửi
-tôi chỉ là đang thấy 
-những trò mà tôi không thích mọi người làm thật kệch cỡm và ghê tởm
-những trò mà tôi thích mọi người làm thật tuyệt vời và đáng ngưỡng mộ
-phần nào đó trong bản năng của tôi muốn những trò tôi ghét bớt phiền đến tôi và những trò tôi hảo chầm chậm lại để tôi còn học tập, theo kịp và vượt mặt
-      </div>
-
-      <div class="stanza">
-chứ mà thật sự thì
-họ có thấy giống tôi không? 
-họ có thấy mình là một đứa trẻ không?
-tôi thử phân tích và thấy tôi là
-một đứa trẻ có mục đích
-      </div>
+    <div class="colors"><span>màu chữ</span>
+      <div class="sw" id="inkSw"><input type="color" id="inkPick" aria-label="Chọn màu chữ tự do"></div>
     </div>
-  </div>
-  <div class="poem-fin" style="color:#3a2e22;">✦</div>
-</div>
-
-<!-- BÀI 2: ghét một nửa -->
-<div id="poem-4" class="poem-page"
-  data-fg="#3a2e22"
-  data-title-color="#2c1810"
->
-  <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi_picture_04.JPG" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">về người tôi ghét một nửa</h2>
-    <span class="poem-hero-date">Tháng 11, 2025</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-một chiều tâm tư tôi dạo trên mặt sông quê mình xanh sóng
-tôi nghĩ về những gì bạn viết—tôi đã đọc
-chúng ta là những đứa trẻ lớn lên dưới cùng một bầu trời
-đời sống đã từng thật cay nghiệt với cả bạn và tôi
-      </div>
-      <div class="stanza">
-cánh bướm mãi quẩn quanh trên những bụi hoa bãi cỏ
-nhà phao, nhà bóng
-món đồ chơi đủ màu bay rất cao nơi đông nghịt người
-một cánh tay vung thẳng tung một màn lưới thưa thớt từ mạn đò
-bắt lấy hồn của tôi và bạn thuở ấu thơ đó
-chúng ta đều tò mò về thế giới
-      </div>
-      <div class="stanza">
-tôi yêu ngày xưa ấy của tôi
-lớn hơn rồi nhìn về thật kì diệu
-thật mạnh mẽ và cũng thật mềm yếu
-tựa dòng sông lấp lửng một buổi chiều
-      </div>
-      <div class="stanza">
-cũng là dòng sông ấy đã nuôi dưỡng cả thân tôi và bạn
-những thế hệ gia đình tôi và gia đình bạn
-dòng sông đã ôm trọn cả thành phố
-lách qua những nhánh đường nhìn tà áo trắng chúng ta lấp lánh 
-ôi dòng sông, tôi và bạn cứ tha thiết dòng sông
-những đã bao giờ bạn nhảy ùm xuống?
-      </div>
-      <div class="stanza">
-ta đều—cùng vô vàn những thứ 
-nhưng dường như chưa giống nhau bao giờ
-khi tôi soi mình thật kỹ, nhìn bạn thật kỹ
-đã tưởng chừng như tôi nhìn thấy nơi bạn những gì tôi chối bỏ nơi tôi
-nhưng đã nhìn vào sâu thẳm những tối tăm hẹp hòi đó rồi
-vẫn là đang loanh quanh lạc ở bìa rừng
-chút ánh sáng từ quê nhà kéo tôi trở lại
-có thể nơi rừng thiêng: một con thú cùng một vị thần 
-bởi cả hai, rừng bất khả xâm phạm
-      </div>
-      <div class="stanza">
-trong mênh mông những ngày tháng
-bạn đã nhìn thấy tôi—tôi nhìn thấy bạn
-tôi không nhớ bạn đã dùng ánh mắt nào và tôi có đôi mắt nào thời ấy 
-bạn đã lớn lên rồi
-tôi đã lớn lên rồi
-chúng ta vẽ những đường cong, đường thẳng, đường đứt quãng thật tự do
-khi trời trở lạnh, hàng quán nghi ngút khói 
-trên quê hương yêu dấu bao đời
-tôi không mong chúng ta sẽ gặp lại
-chúng ta chưa từng là bạn của nhau.
-      </div>
+    <label for="text">cỡ tên bài <input type="range" id="text" min="60" max="160"><output id="textOut"></output></label>
+    <label for="wave">độ lượn <input type="range" id="wave" min="0" max="250"><output id="waveOut"></output></label>
+    <label for="glide">độ trôi <input type="range" id="glide" min="20" max="200"><output id="glideOut"></output></label>
+    <label for="gap">khoảng cách khung <input type="range" id="gap" min="0" max="12" step="0.5"><output id="gapOut"></output></label>
+    <label for="frame">cỡ khung <input type="range" id="frame" min="70" max="160"><output id="frameOut"></output></label>
+    <h2>trang bài thơ</h2>
+    <div class="colors"><span>phông chữ</span>
+      <div class="seg" id="fontSeg"></div>
     </div>
-  </div>
-  <div class="poem-fin" style="color:#3a2e22;">✦</div>
-</div>
-<!-- BÀI 5: cây ớt -->
-<div id="poem-5" class="poem-page"
-  data-fg="#f5ede3"
-  data-title-color="#f5ede3"
->
-  <a class="poem-back" style="color:#f5ede3;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi_picture_5.JPG" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">cây ớt</h2>
-    <span class="poem-hero-date">Tháng 9, 2025</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-sáng nay thức dậy, con mèo của tôi mắc kẹt ở lỗ thông gió
-sau khi tìm được đường ra, nó nhảy xổ vào cây ớt ở ban công
-những gì bị bỏ bê một thời gian mà biến mất trước thời hạn biến mất
-dẫu biết sẽ biến mất
-vẫn tiếc thương
-tôi xuýt xoa
-tôi đã tưởng rằng những cái lá bé xanh dễ ghét ấy sẽ chết
-bởi cây ớt ở đỉnh cao sai trái
-ngày tôi đón nó về
-xanh tím đỏ
-để có cảm giác được thâu hoạch
-tôi ở đỉnh cao sai trái 
-      </div>
-      <div class="stanza">
-bàn tay tôi chưa từng được trồng lấy một cây ớt
-vì đàn chim là những người thợ gieo trồng giỏi nhất
-chúng đã gieo rất nhiều hạt nên rồi sẽ có cây lên mầm
-chúng đã làm việc đó suốt nhiều thế hệ
-nhưng duy chỉ với những nhà có khoảng sân, mảnh vườn, có chậu đất, có sân thượng
-đêm qua tôi mơ về căn nhà cũ có gác mái gỗ mà ba mẹ tôi đã chung tay xây dựng
-thật vuông vức
-tròn vẹn
-để những năm tháng đẹp đẽ của tôi nương nhờ
-căn nhà không có khoảng sân, mảnh vườn, chậu đất, sân thượng
-ấy vậy trong nhà tôi vẫn hay ho sặc sụa vì mùi ớt bột xay của mẹ
-tôi thầm cảm ơn căn nhà, cảm ơn đàn chim đã không gieo hạt
-mỗi khi thấy mẹ từ chợ đầu mối về
-mang theo một bao tải ớt
-      </div>
-      <div class="stanza">
-tôi thông thuộc các loại ớt và các món ớt từ hồi bốn tuổi
-ớt bom, ớt xiêm rừng, ớt chỉ trời, ớt chỉ đất
-nhiều đến nỗi tôi nghi ngờ rằng liệu ớt có phải là một từ có thật?
-      </div>
-      <div class="stanza">
-mẹ tôi không còn ăn cay nữa sau khi tôi ra đời
-những bà hàng xóm nói rằng sự cay nghiệt ấy đã chuyển lên người tôi
-lớn lên rồi sẽ thấy
-tôi không quan tâm và chỉ thấy lạ
-mẹ tôi vẫn ho và bỏng ớt mỗi ngày
-đêm, đèn tắt, trời tối om
-mẹ ngâm tay vào chậu nước đi ngủ
-bởi cái gì xấu thì giấu đi
-      </div>
-      <div class="stanza">
-tôi lớn lên một nửa thành thị
-tôi lớn lên một nửa nông thôn
-không đủ để nhảy vào những ụ rơm trên cánh đồng
-không đủ để lơ đãng với tiếng xe cộ và ánh đèn nhấp nháy 
-ở gần một ngôi chợ bán trầu
-tôi nắm tay mẹ lõm bõm
-đi đến cuối chợ là bờ sông phát sáng
-những con cá vừa cập bến ánh mắt trong vắt trong
-dần chuyển đục ngầu đục trong nồi kho của mẹ tôi đầy ớt xanh ớt đỏ
-những món kho cay nồng hít hà 
-đêm đêm mơ được ngủ trên căn gác gỗ
-tôi vẫn nghe mùi cá
-      </div>
-      <div class="stanza">
-ở trong thành phố không phải quê hương mình
-mọi thứ thật nhạt nhẽo
-người yêu trước đây của tôi một lần đưa tôi về ăn cơm
-tôi bẽn lẽn như vẫn luôn bẽn lẽn
-cá thịt chỉ kho trăng trắng
-rau rủng chỉ tỏi
-và món canh chẳng thơm mùi ruốc nổi
-thuở ấy anh còn hiểu tôi
-lén xin vài trái ớt mà ở miền nam ăn nhiều
-hình như người lớn nơi nào cũng thích đùa giỡn
-dì anh nói rằng tôi ăn cay nhiều như thế tức máu ghen rất dữ
-anh nên cẩn thận để biết chiều lòng tôi
-tôi biết ơn dì
-vì cái gì tốt thì khoe
-ở trong thành phố không phải quê hương mình
-mọi thứ thật nhạt nhẽo
-tôi nhớ về những bà hàng xóm
-tôi đã không bao giờ ăn ớt nữa ở trong thành phố không phải quê hương mình
-tôi đã dỡ bỏ một cảm giác từng che chắn cứu rỗi tôi khỏi (sự nhạt nhẽo của) những bữa ăn ở trong thành phố không phải quê hương mình
-      </div>
-      <div class="stanza">
-tôi cá rằng ở cái xóm nhỏ của tôi không ai biết tôi vẫn đang tập viết
-vốn dĩ họ vẫn đang tìm cách để tồn tại
-họ sẽ không quan tâm
-họ sẽ cười khi tôi nói nhiều về cây ớt
-họ sẽ kể về những lần tôi trộm ớt nhà họ để làm ruốc chấm với mấy trái xoài tôi trộm ở nhà khác
-nhưng nếu họ biết tôi viết về họ
-sẽ bắt tôi xóa đi
-vì tốt mới nên khoe
-      </div>
-      <div class="stanza">
-ngày nọ
-tôi trở về quán ghế nhựa đỏ
-gọi một bát bánh canh cay xé lưỡi
-từng vá múc thông tin nóng hổi
-người chị sống đối diện nhà lãnh án tử
-vì cái thứ mà mẹ tôi đã sống chết căn dặn anh chị em tôi đừng bao giờ động vào
-tôi ăn tô thứ hai
-cay xé lưỡi
-cay xé mắt và cuống họng
-cay xé cả lần tôi sáu tháng tuổi ngồi trên ghế đỏ nhà chị ngày sinh nhật chị
-được chụp nhờ một tấm ảnh đầu tiên đẹp nhất trong đời 
-bác thợ chụp đã chỉnh cái ghế nhựa đỏ thành cái ghế mây thật đẹp
-vì cái gì xấu xí thì đừng để lộ ra
-tôi chẳng thể
-ôi mưa trắng xóa ơi
-tôi chẳng thể chỉnh gì được lúc này
-      </div>
-      <div class="stanza">
-ôi mái tôn ủ dột ơi!
-ôi bóng đò mờ mịt ơi!
-ôi ẩm ướt lạnh lẽo thấu xương ơi!
-đã nhiều lần tôi hỏi về quê hương
-năm mẹ tôi sinh ra, thành phố đỏ rực máu lửa
-mẹ tôi chưa từng kể một lời
-những viên kẹo rớt rơi mặt đất
-đám trẻ chúng tôi thi nhau lượm nhặt
-vàng mã cháy rực hắt lên mặt chúng tôi những hơi nóng khó tả
-nhăn nhúm như không gian lúc ấy bị túm lại vò nhàu
-nhà tôi công giáo
-và cũng không có lấy một cái sân để đốt lửa
-nên mẹ tôi đã nhóm một đóm lửa nhỏ trong bếp
-nấu một mâm cơm chứa một đóm lửa nhỏ khác
-những đóm lửa nho nhỏ nồng ấm ấy đã ủ ấp tôi cho đến mãi sau này
-      </div>
-      <div class="stanza">
-ở trong thành phố không phải quê hương mình
-mọi thứ thật nhạt nhẽo
-cơn mưa nặng hạt này thấm vào da tôi những bụi những a-xít
-thấm vào cây ớt ban công của tôi những bụi những a-xít 
-như đàn chim đã chăm chỉ rải xuống mặt đất rất nhiều những hạt giống ớt
-tôi nói với cơn mưa rằng
-tôi đã nuốt rất nhiều hạt 
-tôi nghĩ rằng trong bụng mình đã mọc lên một cây
-tôi mong hạt đã nảy mầm 
-là hạt ớt của quê hương
-và nhìn kìa! 
-cây ớt ban công 
-vừa đậu quả.
-      </div>
+    <label for="psize">cỡ chữ thơ <input type="range" id="psize" min="70" max="140"><output id="psizeOut"></output></label>
+    <div class="colors"><span>nền bài thơ</span>
+      <div class="seg" id="pbgSeg"></div>
     </div>
-  </div>
-  <div class="poem-fin" style="color:#f5ede3;">✦</div>
-</div>
-
-
-<!-- BÀI 6: tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời -->
-<div id="poem-6" class="poem-page"
-  data-fg="#3a2e22"
-  data-title-color="#2c1810"
->
-  <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi_picture_6.JPG" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời</h2>
-    <span class="poem-hero-date">Tháng 4, 2026</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-con chim mới hót sáng nay
-lay tôi thức dậy
-mà quên rồi giấc mơ
-đêm qua mơ, đẹp như mơ
-nên tìm cách nhớ
-như là con chim
-tìm sâu trên lá im lìm
-      </div>
-      <div class="stanza">
-sáng trời
-sâu hoá bướm, giấc mơ đã là áng mây lững lờ
-vươn mình dậy nhưng chẳng thể với được
-có biết không?
-tỉnh táo
-tự thuở nào vần thơ còn nóng hổi
-nhìn những cánh chim bay mà lững thững
-giữa những ngã đường
-già cỗi ý tưởng
-đừng nặng nề nhau nhé
-nhủ rằng hãy tự bay cao
-      </div>
-      <div class="stanza">
-tối trời
-chim rúc rích chim, giấc mơ hẳn còn đong đưa chiêm chiếp mi mắt
-buồn thõng thân thể mà ôm trọn
-có biết không?
-mộng mơ
-nơi nào cho đủ rộng — cất giữ hết thảy những điều ấy
-cánh chim mang về mùa màng, âm nhạc, vô tư, phong phú
-líu lăng chao liệng
-bay vững vàng vọt lo thấp thỏm
-đừng rơi nhé
-nhủ rằng vẫn còn lửng lơ
-      </div>
-      <div class="stanza">
-là tôi đã mơ nhiều hay chưa từng
-đôi cánh trên lưng còn chưa mọc đã đòi vỗ
-lô nhô ven trời
-đành mượn tạm sắc màu của những cây bút lăn rơi
-đi hoài những nét mới
-những điều mới, hẳn còn mới
-quây quần trên trang giấy vô tận
-lại phải cần đi cùng nhau
-có lẽ chính là như vậy
-      </div>
-      <div class="stanza">
-tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời
-      </div>
+    <label for="bright">độ sáng nền <input type="range" id="bright" min="10" max="60"><output id="brightOut"></output></label>
+    <label for="grain">độ hạt <input type="range" id="grain" min="0" max="100"><output id="grainOut"></output></label>
+    <label for="gsize">cỡ hạt <input type="range" id="gsize" min="1" max="4" step="0.1"><output id="gsizeOut"></output></label>
+    <div class="colors"><span>hạt phim</span>
+      <div class="seg" id="gmoveSeg"></div>
     </div>
-  </div>
-  <div class="poem-fin" style="color:#3a2e22;">✦</div>
-</div>
-  <!-- BÀI 7: ngày hôm nay bình thường -->
-<div id="poem-7" class="poem-page"
-  data-fg="#f5ede3"
-  data-title-color="#f5ede3"
->
-  <a class="poem-back" style="color:#3a2e22;" onclick="backToList()">←</a>
-
-  <img class="poem-bg-img" src="vi.anh.01.jpeg" alt="">
-
-  <div class="poem-hero">
-    <h2 class="poem-hero-title">ngày hôm nay bình thường</h2>
-    <span class="poem-hero-date">Tháng 6, 2026</span>
-    <span class="hero-scroll">↓</span>
-  </div>
-
-  <div class="poem-body">
-    <div class="poem-text">
-      <div class="stanza">
-hôm nay là một ngày bình thường
-hôm nay đã đổi thay
-từ ngữ ngày trước
-hôm nay đã không còn dùng nữa
-      </div>
-      <div class="stanza">
-hôm nay dẫu vẫn vậy
-hôm nay là một ngày bình thường
-hôm nay viết
-hôm nay đọc ngày hôm nay
-      </div>
-      <div class="stanza">
-hôm nay là một ngày bình thường
-hôm nay mưa nhiều
-hôm nay trời tối muộn
-hôm nay gió bay
-      </div>
-      <div class="stanza">
-hôm nay cũng lại có nắng
-nắng cháy tóc hôm nay
-hôm nay khác ngày hôm qua
-hôm nay là một ngày bình thường
-      </div>
-      <div class="stanza">
-tầu lá chuối xanh hôm nay
-cũng là buồng chuối vàng trĩu nặng hôm nay
-cũng là hoa chuối đỏ rực hôm nay
-là đèn giao thông của dòng chảy hôm nay
-      </div>
-      <div class="stanza">
-hôm nay màu xanh úa vàng
-người ta thều thào thở
-những cánh cửa nghêu ngao mở
-tất cả là vì hôm nay
-      </div>
-      <div class="stanza">
-bình minh hôm nay
-cùng với hoàng hôn hôm nay
-chúng rượt đuổi nhau hôm nay
-muốn chạy trốn tạm về ngày trước
-      </div>
-      <div class="stanza">
-hôm nay nhớ về ngày trước
-là một phần thân thể của hôm nay
-mà như nhát kéo cắt thật ngọt mái tóc
-rất rõ ràng trong một khoảnh khắc không thể nối lại
-      </div>
-      <div class="stanza">
-hôm nay trời đêm ô nhiễm ánh sáng
-hôm nay dòng sông ô nhiễm những nhánh nước xả vào
-hôm nay công viên ô nhiễm những tụ tập
-và thời gian ô nhiễm hôm nay
-      </div>
-      <div class="stanza">
-hôm nay cứ hay tơ tưởng kẹt cứng với ngày trước
-hôm nay không thể vọt nhảy về phía trước
-hôm nay chẳng thể biết được sau và trước
-vì rồi hôm nay cũng sẽ trở thành ngày trước
-      </div>
-      <div class="stanza">
-hôm nay có bao giờ nghĩ
-đất yêu nước như ngày hôm nay
-em yêu anh như ngày hôm nay
-thật đẹp đẽ mà cũng lẹ làng trở mặt quay lưng
-      </div>
-      <div class="stanza">
-hôm nay di chuyển
-hôm nay dối gạt
-hôm nay quyến rũ
-hôm nay thật thà
-và sao mà chán ngắt
-hôm nay thắc mắc
-hôm nay ngỡ ngàng nhận ra
-người bạn ngày hôm qua
-đã không còn gặp được nữa
-      </div>
-      <div class="stanza">
-hôm nay có muốn nói về hôm qua không?
-hôm qua có quen biết ngày hôm sau không nhỉ?
-hôm nay có quen biết ngày hôm sau không nhỉ?
-hôm nay có giận vì hôm sau cứ mãi lỗi hẹn?
-hôm nay thấy thế nào?
-hôm nay có muốn trả lời hay chỉ thích lặng đi?
-      </div>
-      <div class="stanza">
-những người bạn hôm nay
-những người tình hôm nay
-những người thù địch hôm nay
-những người thầy hôm nay
-đã ở lại cùng với ngày hôm nay
-      </div>
-      <div class="stanza">
-những vì sao hôm nay
-chén cơm nguội hôm nay
-hoa thiên điểu hôm nay
-gối chăn hôm nay
-tiếng sáo hôm nay
-chiếc thuyền lá tre hôm nay
-giấc ngủ hôm nay
-giấc mộng hôm nay
-giấc ác mộng hôm nay
-là một hôm nay thật mới mẻ
-luôn là một hôm nay thật mới mẻ
-      </div>
-      <div class="stanza">
-em cầm tay hôm nay thỏ thẻ
-hôm nay ngượng mặt chín đỏ
-dòng chảy dừng lại nhẹ bẫng
-đôi mắt em chớp lại lồng vào hàng mi hôm—nay—mở—ra
-      </div>
+    <label for="glow">viền sáng <input type="range" id="glow" min="10" max="100"><output id="glowOut"></output></label>
+    <h2>bài đang mở</h2>
+    <label for="plh">giãn dòng <input type="range" id="plh" min="1.4" max="3.2" step="0.05"><output id="plhOut"></output></label>
+    <div class="inkbox off" id="inkBox">
+      <span class="ink-h">màu chữ bài này (số càng cao càng dễ đọc)</span>
+      <div class="ink-list" id="inkList"></div>
+      <label for="pveil">nền tối / sáng <input type="range" id="pveil" min="-60" max="60" step="1"><output id="pveilOut">–</output></label>
+      <button type="button" class="reset" id="inkReset">về màu chữ và nền mặc định của bài</button>
     </div>
+    <p class="note" id="openNote">Mở một bài để chỉnh giãn dòng riêng cho bài đó.</p>
+    <h2>viền ảnh cuối bài</h2>
+    <label for="glowTime">nhịp viền <input type="range" id="glowTime" min="3" max="10" step="0.5"><output id="glowTimeOut"></output></label>
+    <p class="note">Bấm khung ở giữa để mở bài. Cuối bài, bấm vào ảnh để về cuộn phim. Nền bài thơ là ảnh của bài làm nhòe, phủ một lớp tối và hạt phim; ảnh càng sáng thì lớp tối càng dày để chữ vẫn dễ đọc. Sau này mỗi bài có thiết kế riêng.</p>
+    <p class="note" id="note"></p>
+    <button type="button" class="reset" id="reset">về mặc định</button>
   </div>
-  <div class="poem-fin" style="color:#3a2e22;">✦</div>
+  <button type="button" class="tune" id="tune" aria-expanded="false" aria-controls="panel">chỉnh</button>
+</nav>
+
+
 </div>
-  <script>
-  function showList() {
-    document.getElementById('homepage').classList.add('hidden');
-    var list = document.getElementById('poem-list-view');
-    list.style.display = 'flex';
-    void list.offsetWidth;
-    list.classList.add('visible');
+
+<script>
+/* ---------- nhật ký nhỏ cho bản thử: ghi lại sự cố (mất WebGL, lỗi, phòng hồ không tải) để hiện trong bảng "chỉnh" ---------- */
+window.HPT_LOG = (function () {
+  var items = [], t0 = Date.now();
+  return function (msg) {
+    var line = ((Date.now() - t0) / 1000).toFixed(1) + 's ' + msg;
+    items.push(line); if (items.length > 10) items.shift();
+    if (window.console) console.warn('[hpt] ' + line);
+    var el = document.getElementById('hLog');
+    if (el) { el.hidden = false; el.textContent = 'nhật ký: ' + items.join(' · '); }
+  };
+})();
+window.addEventListener('error', function (e) { if (e.message) HPT_LOG('lỗi: ' + e.message); });
+window.addEventListener('unhandledrejection', function (e) { var r = e.reason; HPT_LOG('lỗi: ' + (r && r.message ? r.message : r)); });
+
+/* ---------- trang chủ: ảnh film vẽ bằng WebGL, nhòe và tách màu quanh con trỏ (thông số đã chốt) ---------- */
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var S = { fx: !reduce, strength: 44, radius: 13, lag: 34 };
+  var canvas = document.getElementById('gl'), img = document.getElementById('img'), home = document.getElementById('home');
+  var gl = null, prog = null, U = {}, glOK = false, isGL2 = false;
+  var glOpts = { antialias: false, alpha: false, depth: false, stencil: false, premultipliedAlpha: false };
+  try { gl = canvas.getContext('webgl2', glOpts); isGL2 = !!gl; if (!gl) gl = canvas.getContext('webgl', glOpts); } catch (e) {}
+  var VS = 'attribute vec2 a_pos; varying vec2 vUv;' +
+           'void main(){ vUv = a_pos * 0.5 + 0.5; gl_Position = vec4(a_pos, 0.0, 1.0); }';
+  var FS = [
+    '#ifdef GL_FRAGMENT_PRECISION_HIGH', 'precision highp float;', '#else', 'precision mediump float;', '#endif',
+    'varying vec2 vUv;',
+    'uniform sampler2D u_tex;',
+    'uniform vec2 u_factor;',
+    'uniform vec2 u_res;',
+    'uniform vec2 u_pos;',
+    'uniform vec2 u_vel;',
+    'uniform float u_strength;',
+    'uniform float u_radius;',
+    'uniform sampler2D u_maskA;',   /* hình chữ, nhòe rất nhẹ: mỗi kênh R, G, B là một chữ hồ, phá, thơ */
+    'uniform sampler2D u_maskB;',   /* hình chữ nhòe nhiều: dùng làm độ cao mặt nước để tính khúc xạ và ánh bóng */
+    'uniform vec4 u_mrect;',        /* vùng của hai ảnh trên, px CSS: trái, trên, rộng, cao */
+    'uniform vec3 u_hover;',        /* mức hóa nước của từng chữ, 0 đến 1 */
+    'uniform float u_time;',
+    'uniform vec3 u_rip;',          /* gợn một nhịp: tâm (px) và tuổi (giây), tuổi < 0 là không có */
+    'uniform vec3 u_live;',         /* gợn quanh con trỏ khi đang rê trên chữ: vị trí và độ mạnh */
+    'uniform vec4 u_wp;',           /* khúc xạ, núng nính, gợn sóng, ánh bóng (1 = mặc định) */
+    'vec2 cover(vec2 uv){ return uv * u_factor - u_factor * 0.5 + 0.5; }',
+    'vec2 mpos(vec2 q){ return (q - u_mrect.xy) / u_mrect.zw; }',
+    'float inR(vec2 m){ return step(0.0, m.x) * step(m.x, 1.0) * step(0.0, m.y) * step(m.y, 1.0); }',
+    'float hA(vec2 q){ vec2 m = mpos(q); return inR(m) * dot(texture2D(u_maskA, m).rgb, u_hover); }',
+    'float hB(vec2 q){ vec2 m = mpos(q); return inR(m) * dot(texture2D(u_maskB, m).rgb, u_hover); }',
+    'void main(){',
+    '  vec2 p = u_pos / u_res; p.y = 1.0 - p.y;',
+    '  vec2 v = u_vel / u_res; v.y = -v.y;',
+    '  vec2 d = vUv - (p + v); d.x *= u_res.x / u_res.y;',
+    '  float r = clamp(1.0 - length(d) / u_radius, 0.0, 1.0);',
+    '  r = r * r * (3.0 - 2.0 * r);',
+    '  vec2 off = v * r * u_strength;',
+    '  if (u_hover.x + u_hover.y + u_hover.z < 0.001) {',
+    '    gl_FragColor = vec4(texture2D(u_tex, cover(vUv - off)).r, texture2D(u_tex, cover(vUv - off * 1.67)).g, texture2D(u_tex, cover(vUv - off * 2.0)).b, 1.0);',
+    '    return;',
+    '  }',
+    '  vec2 px = vec2(vUv.x, 1.0 - vUv.y) * u_res;',
+    '  float t = u_time;',
+    /* núng nính: dịch nhẹ chỗ đọc hình chữ theo thời gian, mép chữ rung rinh như mặt nước */
+    '  vec2 wob = u_wp.y * 0.85 * vec2(sin(px.y * 0.17 + t * 3.2) + 0.5 * sin(px.x * 0.23 - t * 4.1), cos(px.x * 0.15 + t * 3.6) + 0.5 * sin(px.y * 0.21 - t * 2.9));',
+    '  vec2 q = px + wob;',
+    '  float a = smoothstep(0.22, 0.5, hA(q));',
+    '  float e = 2.0;',
+    '  vec2 g = vec2(hB(q + vec2(e, 0.0)) - hB(q - vec2(e, 0.0)), hB(q + vec2(0.0, e)) - hB(q - vec2(0.0, e))) / (2.0 * e);',
+    '  vec2 rr = vec2(0.0);',
+    '  if (u_rip.z >= 0.0) {',
+    '    vec2 dv = px - u_rip.xy; float dist = length(dv) + 0.001; float R = u_rip.z * 300.0;',
+    /* bình phương bằng phép nhân: pow() với số âm không xác định, card đồ họa của Mac trả về NaN và vẽ ra màu đen */
+    '    float rd = (dist - R) / 28.0;',
+    '    float w = sin((dist - R) * 0.2) * exp(-rd * rd) * exp(-u_rip.z * 2.2);',
+    '    rr += dv / dist * w * 4.5;',
+    '  }',
+    '  if (u_live.z > 0.001) {',
+    '    vec2 dv = px - u_live.xy; float dist = length(dv) + 0.001;',
+    '    rr += dv / dist * sin(dist * 0.16 - t * 6.5) * exp(-dist * 0.014) * u_live.z * 2.5;',
+    '  }',
+    /* mặt nước trong nét chữ lăn tăn rất nhẹ: ảnh phía sau xao động chứ hình chữ gần như đứng yên */
+    '  rr += u_wp.y * 1.1 * vec2(sin(px.x * 0.11 + px.y * 0.07 + t * 2.8), sin(px.y * 0.10 - px.x * 0.06 - t * 2.4));',
+    /* khúc xạ: ảnh nhìn qua nét chữ bị lệch theo độ dốc mặt nước và theo gợn; ba màu lệch khác nhau một chút */
+    '  vec2 ro = (-g * 52.0 * u_wp.x + rr * u_wp.z) * a;',
+    '  vec2 rv = ro / u_res; rv.y = -rv.y;',
+    '  vec3 base = vec3(texture2D(u_tex, cover(vUv - off + rv)).r, texture2D(u_tex, cover(vUv - off * 1.67 + rv * 1.12)).g, texture2D(u_tex, cover(vUv - off * 2.0 + rv * 1.25)).b);',
+    '  vec3 n = normalize(vec3(-g.x * 16.0 - rr.x * 0.05, -g.y * 16.0 - rr.y * 0.05, 1.0));',
+    '  vec3 H = normalize(normalize(vec3(-0.55, -0.65, 0.55)) + vec3(0.0, 0.0, 1.0));',
+    '  float spec = pow(max(dot(n, H), 0.0), 44.0);',
+    '  float edge = clamp(length(g) * 10.0, 0.0, 1.0);',
+    '  vec3 water = base * (1.05 - 0.12 * edge) + vec3(0.012, 0.022, 0.03);',
+    '  water += vec3(1.0, 0.99, 0.96) * (spec * 0.8 + smoothstep(0.5, 1.0, edge) * 0.08) * u_wp.w;',
+    /* bóng rất nhẹ ngay ngoài mép chữ cho giọt nước có hình */
+    '  float halo = smoothstep(0.04, 0.3, hB(q)) * (1.0 - a);',
+    '  vec3 col = base * (1.0 - 0.10 * halo * u_wp.w);',
+    '  gl_FragColor = vec4(mix(col, water, a), 1.0);',
+    '}'
+  ].join('\n');
+  function compile(type, src) {
+    var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+  var maskA = null, maskB = null;
+  function newTex(unit) {
+    var tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return tx;
+  }
+  function initGL() {
+    prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+    var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'a_pos'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    ['u_tex', 'u_factor', 'u_res', 'u_pos', 'u_vel', 'u_strength', 'u_radius', 'u_maskA', 'u_maskB', 'u_mrect', 'u_hover', 'u_time', 'u_rip', 'u_live', 'u_wp']
+      .forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+    gl.activeTexture(gl.TEXTURE0);
+    var tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    if (isGL2) { gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); }
+    else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.uniform1i(U.u_tex, 0);
+    maskA = newTex(1); maskB = newTex(2);
+    gl.uniform1i(U.u_maskA, 1); gl.uniform1i(U.u_maskB, 2);
+    glOK = true;
   }
 
-  function backToHome() {
-    var list = document.getElementById('poem-list-view');
-    list.classList.remove('visible');
-    window.location.hash = '';
-    setTimeout(function() {
-      list.style.display = 'none';
-      document.getElementById('homepage').classList.remove('hidden');
-    }, 400);
+  /* ---------- thông số chữ hóa nước (chỉnh được trong bản thử) ---------- */
+  var WDEF = { refr: 100, wob: 100, rip: 100, gloss: 100, soft: 100, time: 0.45 };
+  var W = Object.assign({}, WDEF);
+  try { var ws = JSON.parse(localStorage.getItem('hpt-water2') || 'null'); if (ws) W = Object.assign(W, ws); } catch (e) {}
+  var WKEYS = [['refr', 'hRefr', '%'], ['wob', 'hWob', '%'], ['rip', 'hRip', '%'], ['gloss', 'hGloss', '%'], ['soft', 'hSoft', '%'], ['time', 'hTime', ' giây']];
+  function applyW(rebuild) {
+    WKEYS.forEach(function (k) { document.getElementById(k[1]).value = W[k[0]]; document.getElementById(k[1] + 'Out').textContent = W[k[0]] + k[2]; });
+    document.documentElement.style.setProperty('--wt', W.time + 's');
+    try { localStorage.setItem('hpt-water2', JSON.stringify(W)); } catch (e) {}
+    if (rebuild) buildMask();
+    draw();
   }
+  WKEYS.forEach(function (k) { document.getElementById(k[1]).addEventListener('input', function (e) { W[k[0]] = +e.target.value; applyW(k[0] === 'soft'); }); });
+  document.getElementById('hReset').addEventListener('click', function () { W = Object.assign({}, WDEF); applyW(true); });
+  var hTune = document.getElementById('hTune'), hPanel = document.getElementById('hPanel');
+  hTune.addEventListener('click', function () { hPanel.hidden = !hPanel.hidden; hTune.setAttribute('aria-expanded', String(!hPanel.hidden)); });
 
-  function openPoem(id) {
-    var page = document.getElementById(id);
-    if (!page) return;
-
-    var list = document.getElementById('poem-list-view');
-    list.classList.remove('visible');
-    setTimeout(function() { list.style.display = 'none'; }, 300);
-
-    var fg = page.getAttribute('data-fg');
-    var titleColor = page.getAttribute('data-title-color');
-    page.style.color = fg;
-
-    var title = page.querySelector('.poem-hero-title');
-    if (title) title.style.color = titleColor;
-
-    var date = page.querySelector('.poem-hero-date');
-    if (date) date.style.color = fg;
-
-    page.classList.add('active');
-    window.location.hash = id;
-    window.scrollTo(0, 0);
-  }
-
-  function backToList() {
-    var pages = document.querySelectorAll('.poem-page');
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].classList.remove('active');
+  /* ---------- hình chữ cho lớp nước: vẽ đúng vị trí ba chữ trên một tấm canvas phụ, mỗi chữ một kênh màu ---------- */
+  var title = document.getElementById('title'), words = [].slice.call(title.querySelectorAll('.w'));
+  var mrect = { x: 0, y: 0, w: 1, h: 1 }, mc = null, mx = null;
+  function boxH(s, d, w, h, r) {
+    var k = 1 / (2 * r + 1);
+    for (var y = 0; y < h; y++) {
+      var o = y * w, acc = 0, x;
+      for (x = 0; x <= r && x < w; x++) acc += s[o + x];
+      for (x = 0; x < w; x++) {
+        d[o + x] = acc * k;
+        var xa = x + r + 1, xr = x - r;
+        if (xa < w) acc += s[o + xa];
+        if (xr >= 0) acc -= s[o + xr];
+      }
     }
-    window.location.hash = '';
-    var list = document.getElementById('poem-list-view');
-    list.style.display = 'flex';
-    void list.offsetWidth;
-    list.classList.add('visible');
-    window.scrollTo(0, 0);
+  }
+  function boxV(s, d, w, h, r) {
+    var k = 1 / (2 * r + 1);
+    for (var x = 0; x < w; x++) {
+      var acc = 0, y;
+      for (y = 0; y <= r && y < h; y++) acc += s[y * w + x];
+      for (y = 0; y < h; y++) {
+        d[y * w + x] = acc * k;
+        var ya = y + r + 1, yr = y - r;
+        if (ya < h) acc += s[ya * w + x];
+        if (yr >= 0) acc -= s[yr * w + x];
+      }
+    }
+  }
+  function blurred(ch, w, h, r) {           /* ba lượt nhòe hộp, gần như nhòe Gauss */
+    var a = Float32Array.from(ch), b = new Float32Array(w * h);
+    for (var i = 0; i < 3; i++) { boxH(a, b, w, h, r); boxV(b, a, w, h, r); }
+    return a;
+  }
+  function upload(tx, unit, chans, w, h) {
+    var out = new Uint8Array(w * h * 4);
+    for (var i = 0, j = 0; i < w * h; i++, j += 4) {
+      out[j] = Math.min(255, chans[0][i] * 255); out[j + 1] = Math.min(255, chans[1][i] * 255); out[j + 2] = Math.min(255, chans[2][i] * 255); out[j + 3] = 255;
+    }
+    gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, out);
+    gl.activeTexture(gl.TEXTURE0);
+  }
+  function buildMask() {
+    if (!glOK) return;
+    var fs = parseFloat(getComputedStyle(title).fontSize), tr = title.getBoundingClientRect();
+    var pad = fs * 0.35, ms = Math.min(window.devicePixelRatio || 1, 1.5);
+    mrect = { x: tr.left - pad, y: tr.top - pad, w: tr.width + 2 * pad, h: tr.height + 2 * pad };
+    var w = Math.max(2, Math.ceil(mrect.w * ms)), h = Math.max(2, Math.ceil(mrect.h * ms));
+    /* mỗi lần vẽ dùng một canvas mới: Chrome giữ phông dự phòng trên canvas cũ nếu lần đầu vẽ khi phông chưa tải xong */
+    mc = document.createElement('canvas'); mc.width = w; mc.height = h;
+    mx = mc.getContext('2d', { willReadFrequently: true });
+    mx.font = '400 ' + (fs * ms) + 'px "Playfair Display", Georgia, serif';
+    if ('letterSpacing' in mx) mx.letterSpacing = (-0.01 * fs * ms) + 'px';
+    mx.textBaseline = 'alphabetic'; mx.globalCompositeOperation = 'lighter';
+    var cols = ['#ff0000', '#00ff00', '#0000ff'];
+    words.forEach(function (el, i) {
+      var r = el.getBoundingClientRect(), m = mx.measureText(el.textContent);
+      var asc = (m.fontBoundingBoxAscent != null) ? m.fontBoundingBoxAscent : fs * ms * 1.08;
+      mx.fillStyle = cols[i];
+      mx.fillText(el.textContent, (r.left - mrect.x) * ms, (r.top - mrect.y) * ms + asc);
+    });
+    var data = mx.getImageData(0, 0, w, h).data, ch = [new Float32Array(w * h), new Float32Array(w * h), new Float32Array(w * h)];
+    for (var i = 0, j = 0; i < w * h; i++, j += 4) { ch[0][i] = data[j] / 255; ch[1][i] = data[j + 1] / 255; ch[2][i] = data[j + 2] / 255; }
+    var rA = Math.max(1, Math.round(fs * ms * 0.006)), rB = Math.max(2, Math.round(fs * ms * 0.03 * W.soft / 100));
+    upload(maskA, 1, ch.map(function (c) { return blurred(c, w, h, rA); }), w, h);
+    upload(maskB, 2, ch.map(function (c) { return blurred(c, w, h, rB); }), w, h);
+    if (window.__homeDebug) { window.__homeDebug.mask = { w: w, h: h, rA: rA, rB: rB, mrect: mrect, fs: fs }; window.__homeDebug.mc = mc; }
   }
 
-  window.addEventListener('scroll', function() {
-    var activePage = document.querySelector('.poem-page.active');
-    if (!activePage) return;
+  var view = { w: 1, h: 1 }, target = { x: 0, y: 0 }, follow = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
+  var asleep = false;   /* đang ở trong phòng: canvas thu về 1 điểm ảnh, nhường bộ nhớ đồ họa cho phòng */
+  function size() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    view.w = home.clientWidth; view.h = home.clientHeight;
+    canvas.width = asleep ? 1 : Math.round(view.w * dpr); canvas.height = asleep ? 1 : Math.round(view.h * dpr);
+    if (!glOK) return;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    var rect = view.w / view.h, im = img.naturalWidth / img.naturalHeight;
+    gl.uniform2f(U.u_factor, rect > im ? 1 : rect / im, rect > im ? im / rect : 1);
+    gl.uniform2f(U.u_res, view.w, view.h);
+  }
+  function resize() {
+    size();
+    if (!glOK) return;
+    try { buildMask(); } catch (e) { HPT_LOG('trang chủ: lỗi vẽ hình chữ (' + e.message + ')'); }
+    draw();                                       /* đổi cỡ canvas là xóa trắng nó, nên lúc nào cũng phải vẽ lại */
+  }
 
-    var img = activePage.querySelector('.poem-bg-img');
-    if (!img) return;
+  /* ---------- giữ cho trang chủ không bao giờ đen ----------
+     Máy có thể lấy lại WebGL bất cứ lúc nào (nhất là khi phòng hồ đang chạy nước).
+     Khi đó ẩn lớp WebGL đi để ảnh thường bên dưới hiện ra, chờ máy trả lại thì dựng lại. */
+  function fallback(why) {
+    glOK = false; canvas.classList.remove('ready');
+    words.forEach(function (w) { w.classList.remove('water'); });
+    HPT_LOG('trang chủ: ' + why + ', hiện ảnh thường');
+  }
+  if (gl) {
+    canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); if (glOK) fallback('máy lấy mất WebGL'); }, false);
+    canvas.addEventListener('webglcontextrestored', function () {
+      try { initGL(); resize(); if (healthy()) { canvas.classList.add('ready'); HPT_LOG('trang chủ: WebGL trở lại'); } }
+      catch (e) { glOK = false; HPT_LOG('trang chủ: không dựng lại được WebGL (' + e.message + ')'); }
+    }, false);
+  }
+  /* vẽ một khung rồi đọc thử năm điểm: ảnh film không có chỗ nào đen kịt, nếu cả năm điểm đều đen là WebGL đang hỏng */
+  function healthy() {
+    if (!glOK) return false;
+    if (gl.isContextLost()) { fallback('WebGL đã mất'); return false; }
+    if (asleep) return true;                     /* đang ở trong phòng: lúc trở về sẽ kiểm tra */
+    try {
+      draw();
+      var px = new Uint8Array(4), dark = 0, pts = [[0.5, 0.5], [0.25, 0.3], [0.75, 0.3], [0.25, 0.7], [0.75, 0.7]];
+      pts.forEach(function (p) {
+        gl.readPixels(Math.floor(canvas.width * p[0]), Math.floor(canvas.height * p[1]), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        if (px[0] + px[1] + px[2] < 12) dark++;
+      });
+      if (dark === pts.length) { fallback('WebGL vẽ ra màu đen'); return false; }
+    } catch (e) { fallback('WebGL lỗi (' + e.message + ')'); return false; }
+    return true;
+  }
 
-    var pageHeight = activePage.scrollHeight;
-    var viewHeight = window.innerHeight;
-    var scrollTop = window.scrollY;
-    var maxScroll = pageHeight - viewHeight;
+  /* ---------- trạng thái nước: mỗi chữ tan dần về 0 hoặc 1, một nhịp gợn, gợn quanh con trỏ ---------- */
+  var hv = [0, 0, 0], tg = [0, 0, 0], rip = { x: 0, y: 0, t0: -1 }, live = { x: 0, y: 0, a: 0, tg: 0 }, t0 = performance.now();
+  function now() { return (performance.now() - t0) / 1000; }
+  function draw() {
+    if (!glOK) return;
+    var t = now();
+    gl.uniform2f(U.u_pos, follow.x, follow.y);
+    gl.uniform2f(U.u_vel, S.fx ? vel.x : 0, S.fx ? vel.y : 0);
+    gl.uniform1f(U.u_strength, 3.0 * S.strength / 100);
+    gl.uniform1f(U.u_radius, S.radius / 100);
+    gl.uniform4f(U.u_mrect, mrect.x, mrect.y, mrect.w, mrect.h);
+    gl.uniform3f(U.u_hover, hv[0], hv[1], hv[2]);
+    gl.uniform1f(U.u_time, reduce ? 0 : t);
+    var ra = rip.t0 < 0 || reduce ? -1 : t - rip.t0;
+    gl.uniform3f(U.u_rip, rip.x, rip.y, ra > 2.6 ? -1 : ra);   /* nhịp gợn đã tắt hẳn thì thôi không tính nữa */
+    gl.uniform3f(U.u_live, live.x, live.y, reduce ? 0 : live.a);
+    gl.uniform4f(U.u_wp, W.refr / 100, reduce ? 0 : W.wob / 100, W.rip / 100, W.gloss / 100);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  function waterBusy() {
+    return hv.some(function (v, i) { return v > 0.002 || tg[i] > 0; }) || live.a > 0.002 || (rip.t0 >= 0 && now() - rip.t0 < 2.6);
+  }
+  var raf = null, last = 0;
+  function tick(nowMs) {
+    var dt = last ? Math.min(64, nowMs - last) : 16.7; last = nowMs;
+    var k = 0.25 - (S.lag / 100) * 0.21, a = 1 - Math.pow(1 - k, dt / 16.7);
+    var nx = follow.x + (target.x - follow.x) * a, ny = follow.y + (target.y - follow.y) * a, s = 16.7 / dt;
+    vel.x = (nx - follow.x) * s; vel.y = (ny - follow.y) * s; follow.x = nx; follow.y = ny;
+    var tau = Math.max(0.03, W.time / 3), f = 1 - Math.exp(-dt / 1000 / tau);   /* sau "thời gian tan" là gần như xong */
+    for (var i = 0; i < 3; i++) { hv[i] += (tg[i] - hv[i]) * f; if (Math.abs(tg[i] - hv[i]) < 0.002) hv[i] = tg[i]; }
+    live.a += (live.tg - live.a) * (1 - Math.exp(-dt / 1000 / 0.25));
+    var moving = Math.abs(target.x - follow.x) + Math.abs(target.y - follow.y) > 0.15;
+    if (!moving) { vel.x = vel.y = 0; follow.x = target.x; follow.y = target.y; }
+    draw();
+    if ((moving && S.fx) || waterBusy()) raf = requestAnimationFrame(tick);
+    else { raf = null; last = 0; }
+  }
+  function onHome() { return !home.classList.contains('off'); }
+  function kick() { if (!raf && glOK && onHome()) raf = requestAnimationFrame(tick); }
+  function snap(x, y) { target.x = follow.x = x; target.y = follow.y = y; vel.x = vel.y = 0; }
+  var inside = false;
+  home.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse') snap(e.clientX, e.clientY); });
+  window.addEventListener('pointermove', function (e) {
+    if (!onHome()) return;
+    if (e.pointerType === 'mouse' && !inside) { snap(e.clientX, e.clientY); inside = true; }
+    target.x = e.clientX; target.y = e.clientY;
+    if (S.fx) kick();
+  }, { passive: true });
+  document.addEventListener('mouseleave', function () { inside = false; });
 
-    if (maxScroll <= 0) return;
+  /* ---------- ba cánh cửa ---------- */
+  function setWater(i, on) { tg[i] = on ? 1 : 0; words[i].classList.toggle('water', on && glOK); kick(); }   /* không có WebGL thì chữ giữ nguyên, không biến mất */
+  function ripple(x, y) { rip.x = x; rip.y = y; rip.t0 = now(); kick(); }
+  var lastType = 'mouse', offTimer = null, ROOMS = ['ho', 'pha', 'tho'];   /* hồ → phòng hồ, phá → phòng phá (Mẻ Lưới Chữ), thơ → phòng thơ */
+  words.forEach(function (el, i) {
+    el.addEventListener('pointerenter', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      setWater(i, true); ripple(e.clientX, e.clientY); live.x = e.clientX; live.y = e.clientY; live.tg = 1;
+    });
+    el.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'mouse') return; setWater(i, false); live.tg = 0; });
+    el.addEventListener('pointermove', function (e) { live.x = e.clientX; live.y = e.clientY; });
+    el.addEventListener('pointerdown', function (e) {
+      lastType = e.pointerType;
+      if (e.pointerType === 'mouse') return;
+      clearTimeout(offTimer);
+      words.forEach(function (_, j) { if (j !== i) setWater(j, false); });
+      setWater(i, true); ripple(e.clientX, e.clientY);                 /* chạm: chữ hóa nước và gợn một nhịp ngay */
+    });
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      var room = ROOMS[i];
+      if (room) {
+        var r = el.getBoundingClientRect();
+        var kb = !e.clientX && !e.clientY;
+        if (kb) { setWater(i, true); ripple(r.left + r.width / 2, r.top + r.height / 2); }   /* bấm Enter */
+        else if (lastType === 'mouse') ripple(e.clientX, e.clientY);
+        if (room === 'pha' && window.HPT_SITE) window.HPT_SITE.primeSound();
+        setTimeout(function () { if (window.HPT_SITE) window.HPT_SITE.enterRoom(room, kb); }, (reduce ? 0.1 : W.time + 0.55) * 1000);
+      } else if (lastType !== 'mouse') {
+        clearTimeout(offTimer);
+        offTimer = setTimeout(function () { setWater(i, false); }, 1600);   /* chữ chưa có phòng: chữ trở lại sau một lúc */
+      }
+    });
+    if (el.tagName === 'A') {
+      el.addEventListener('focus', function () {   /* chỉ hóa nước khi đi tới bằng bàn phím, không phải khi trang tự đặt lại tiêu điểm lúc trở về */
+        var kb = false; try { kb = el.matches(':focus-visible'); } catch (e) {}
+        if (kb) setWater(i, true);
+      });
+      el.addEventListener('blur', function () { setWater(i, false); });
+    }
+  });
+  window.HPT_HOME = {
+    reset: function () {
+      for (var i = 0; i < 3; i++) { tg[i] = 0; hv[i] = 0; words[i].classList.remove('water'); } live.tg = live.a = 0; rip.t0 = -1;
+      if (asleep) { asleep = false; size(); }
+      healthy();
+    },
+    sleep: function () { asleep = true; if (raf) { cancelAnimationFrame(raf); raf = null; last = 0; } canvas.width = 1; canvas.height = 1; }
+  };
 
-    var percent = scrollTop / maxScroll;
-    if (percent < 0) percent = 0;
-    if (percent > 1) percent = 1;
+  function start() {
+    if (gl) { try { initGL(); } catch (e) { glOK = false; if (window.console) console.warn(e); } }
+    snap(home.clientWidth / 2, home.clientHeight / 2);
+    resize();
+    if (document.fonts && document.fonts.load) document.fonts.load('400 100px "Playfair Display"', 'hồ phá thơ').then(function () { try { buildMask(); } catch (e) {} draw(); }, function () {});
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { try { buildMask(); } catch (e) {} draw(); });
+    if (glOK && healthy()) requestAnimationFrame(function () { canvas.classList.add('ready'); });
+    applyW(false);
+  }
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(resize, 80); });
+  if (/debug/.test(location.hash)) window.__homeDebug = { state: function () { return { hv: hv.slice(), tg: tg.slice(), live: live.a, rip: rip.t0 < 0 ? -1 : now() - rip.t0, raf: !!raf, glOK: glOK, ready: canvas.classList.contains('ready') }; }, healthy: function () { return healthy(); } };
+  if (img.complete && img.naturalWidth) start(); else img.addEventListener('load', start);
+})();
 
-    img.style.objectPosition = 'center ' + (percent * 100) + '%';
+/* ---------- đi lại giữa trang chủ và các phòng ---------- */
+/* phòng phá: Mẻ Lưới Chữ, cả trang, mở trong một khung riêng như phòng hồ */
+window.HPT_SITE = (function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var home = document.getElementById('home'), room = document.getElementById('room'), hoWrap = document.getElementById('hoWrap'), phaWrap = document.getElementById('phaWrap');
+  var D = reduce ? 30 : 700, cur = null, busy = false, hoFrame = null, phaFrame = null, byKeyboard = false;
+  function hideHome(cb) { home.classList.add('off'); home.setAttribute('aria-hidden', 'true'); setTimeout(cb, D); }
+  function showHome(sec, focusId) {
+    if (window.HPT_HOME) window.HPT_HOME.reset();
+    if (sec) home.style.transition = 'opacity ' + sec + 's ease, visibility 0s linear 0s';
+    home.classList.remove('off'); home.removeAttribute('aria-hidden');
+    if (focusId && byKeyboard) document.getElementById(focusId).focus({ preventScroll: true });
+    else if (document.activeElement && document.activeElement.blur && home.contains(document.activeElement)) document.activeElement.blur();
+    setTimeout(function () { home.style.transition = ''; }, (sec || 0.7) * 1000 + 60);
+  }
+  function enterRoom(name, kb) {
+    name = name || 'tho';
+    if (busy || cur) return; busy = true;
+    byKeyboard = !!kb;
+    if (!kb && document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    hideHome(function () {                       /* trang chủ tối hẳn rồi phòng mới hiện ra */
+      cur = name;
+      if (window.HPT_HOME) window.HPT_HOME.sleep();
+      if (name === 'tho') {
+        room.classList.remove('off'); room.removeAttribute('aria-hidden');
+        if (window.HPT_ROOM) window.HPT_ROOM.enter();
+        setTimeout(function () { busy = false; }, D);
+      } else if (name === 'ho') {
+        try {
+          hoFrame = document.createElement('iframe');
+          hoFrame.title = 'Phòng hồ';
+          hoFrame.addEventListener('load', showHo, { once: true });
+          hoFrame.src = 'ho.html';                 /* mỗi lần vào là một mặt hồ mới, chữ rải lại từ đầu */
+          hoWrap.appendChild(hoFrame);
+          loadTimer = setTimeout(function () { HPT_LOG('phòng hồ không mở được sau 20 giây'); abortHo(); }, 20000);
+        } catch (e) { HPT_LOG('phòng hồ không mở được (' + e.message + ')'); abortHo(); }
+      } else if (name === 'pha') {
+        try {
+          phaFrame = document.createElement('iframe');
+          phaFrame.title = 'Phòng phá';
+          phaFrame.setAttribute('allow', 'autoplay');   /* nhạc trong phòng được phép lên ngay theo cú bấm vào chữ "phá" */
+          phaFrame.addEventListener('load', showPha, { once: true });
+          phaFrame.src = 'pha.html';               /* mỗi lần vào là một lần thuyền trôi vào từ đầu */
+          phaWrap.appendChild(phaFrame);
+          phaTimer = setTimeout(function () { HPT_LOG('phòng phá không mở được sau 30 giây'); abortPha(); }, 30000);
+        } catch (e) { HPT_LOG('phòng phá không mở được (' + e.message + ')'); abortPha(); }
+      }
+    });
+  }
+  function leaveRoom() {                         /* từ phòng thơ */
+    if (busy || cur !== 'tho') return; busy = true;
+    room.classList.add('off'); room.setAttribute('aria-hidden', 'true');
+    setTimeout(function () {
+      cur = null;
+      if (window.HPT_ROOM && window.HPT_ROOM.leave) window.HPT_ROOM.leave();
+      showHome(0, 'doorTho');
+      setTimeout(function () { busy = false; }, D);
+    }, D);
+  }
+  var loadTimer = null;
+  function showHo() {                            /* hiện mặt hồ khi phòng hồ báo đã sẵn sàng (hoặc khi khung tải xong), lần nào đến trước thì theo lần đó */
+    if (cur !== 'ho' || !hoFrame || !hoWrap.classList.contains('off')) return;
+    clearTimeout(loadTimer);
+    hoWrap.classList.remove('off'); hoWrap.removeAttribute('aria-hidden');
+    try { hoFrame.contentWindow.focus(); } catch (e) {}
+    setTimeout(function () { busy = false; }, D);
+  }
+  function abortHo() {                           /* phòng hồ hỏng: không để người đọc kẹt ở màn hình tối, đưa về trang chủ */
+    clearTimeout(loadTimer);
+    if (hoFrame) { hoFrame.remove(); hoFrame = null; }
+    hoWrap.classList.add('off'); hoWrap.setAttribute('aria-hidden', 'true');
+    cur = null; showHome(0, 'doorHo');
+    setTimeout(function () { busy = false; }, D);
+  }
+  function leaveHo(sec) {                        /* phòng hồ báo đã hết chữ hoặc người đọc bấm trở về: mặt hồ mờ dần, trang chủ hiện lên cùng lúc */
+    if (cur !== 'ho') return; busy = true; clearTimeout(loadTimer);
+    sec = reduce ? 0.03 : sec;
+    hoWrap.style.transition = 'opacity ' + sec + 's ease, visibility 0s linear ' + sec + 's';
+    hoWrap.classList.add('off'); hoWrap.setAttribute('aria-hidden', 'true');
+    showHome(sec, 'doorHo');
+    setTimeout(function () {
+      hoWrap.style.transition = '';
+      if (hoFrame) { hoFrame.remove(); hoFrame = null; }   /* bỏ hẳn phòng hồ: máy không phải chạy mô phỏng nước nữa */
+      cur = null; busy = false;
+    }, sec * 1000 + 100);
+  }
+  /* phòng phá: hiện, hỏng thì về trang chủ, trở về thì mờ dần, giống hệt phòng hồ */
+  var phaTimer = null;
+  /* phòng phá có nhạc. Trình duyệt chỉ cho mở tiếng trong một cú bấm, và cú bấm vào chữ "phá" nằm ở trang này,
+     nên đường tiếng được mở ngay trong cú bấm đó; phòng phá phát qua đường tiếng này, ra khỏi phòng thì đóng lại. */
+  function primeSound() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!window.HPT_AUDIO || window.HPT_AUDIO.state === 'closed') window.HPT_AUDIO = new AC();
+      var a = window.HPT_AUDIO, s = a.createBufferSource();
+      s.buffer = a.createBuffer(1, 1, a.sampleRate); s.connect(a.destination); s.start(0);
+      if (a.state !== 'running') { var r = a.resume(); if (r && r.catch) r.catch(function () {}); }
+    } catch (e) { HPT_LOG('phòng phá: không mở sẵn được tiếng (' + e.message + ')'); }
+  }
+  function closeSound() { try { if (window.HPT_AUDIO) window.HPT_AUDIO.close(); } catch (e) {} window.HPT_AUDIO = null; }
+  function showPha() {
+    if (cur !== 'pha' || !phaFrame || !phaWrap.classList.contains('off')) return;
+    clearTimeout(phaTimer);
+    phaWrap.classList.remove('off'); phaWrap.removeAttribute('aria-hidden');
+    try { phaFrame.contentWindow.focus(); } catch (e) {}
+    setTimeout(function () { busy = false; }, D);
+  }
+  function abortPha() {
+    clearTimeout(phaTimer);
+    if (phaFrame) { phaFrame.remove(); phaFrame = null; }
+    closeSound();
+    phaWrap.classList.add('off'); phaWrap.setAttribute('aria-hidden', 'true');
+    cur = null; showHome(0, 'doorPha');
+    setTimeout(function () { busy = false; }, D);
+  }
+  function leavePha(sec) {
+    if (cur !== 'pha') return; busy = true; clearTimeout(phaTimer);
+    sec = reduce ? 0.03 : sec;
+    phaWrap.style.transition = 'opacity ' + sec + 's ease, visibility 0s linear ' + sec + 's';
+    phaWrap.classList.add('off'); phaWrap.setAttribute('aria-hidden', 'true');
+    showHome(sec, 'doorPha');
+    setTimeout(function () {
+      phaWrap.style.transition = '';
+      if (phaFrame) { phaFrame.remove(); phaFrame = null; }   /* bỏ hẳn phòng phá: tắt cả nhạc lẫn cảnh */
+      closeSound();
+      cur = null; busy = false;
+    }, sec * 1000 + 100);
+  }
+  window.addEventListener('message', function (e) {
+    if (phaFrame && e.source === phaFrame.contentWindow && e.data) {
+      if (e.data.hpt === 'pha-leave') leavePha(+e.data.fade || 1.2);
+      else if (e.data.hpt === 'pha-ready') showPha();
+      else if (e.data.hpt === 'pha-log') HPT_LOG('phá: ' + e.data.msg);
+      return;
+    }
+    if (!hoFrame || e.source !== hoFrame.contentWindow || !e.data) return;
+    if (e.data.hpt === 'ho-leave') leaveHo(+e.data.fade || 2);
+    else if (e.data.hpt === 'ho-ready') showHo();
+    else if (e.data.hpt === 'ho-log') HPT_LOG('hồ: ' + e.data.msg);
+  });
+  return { enterRoom: enterRoom, leaveRoom: leaveRoom, primeSound: primeSound, inRoom: function () { return cur === 'tho'; }, current: function () { return cur; } };
+})();
+</script>
+<script>
+
+var POEMS = [{"title": "sông trăng tiêu điều", "date": "Tháng 9, 2025", "stanzas": [["đò ơi, đèn cày của tôi đã cháy gần hết", "ánh sáng thật đẹp đẽ", "gió nâng niu ngọn lửa bé nhỏ, đừng sợ", "thật ấm áp, đừng sợ", "đã bao giờ tôi rời khỏi ánh sáng đủ lâu để biết bóng tối là gì?", "chúng ta vẫn luôn được cả hai ấp ôm một thể", "khi đi dạo trên con đường cỏ đất mòn", "trăng cứ đi theo nhắc nhở hẳn còn ở đây", "những buổi sáng ngày", "mà đôi mắt cứ nhắm nghiền lại", "là thế", "ở trong nhau để trọn vẹn là thế", "nước, đất, cát, sóng, núi, mây, lửa, gỗ", "thật thân thiết", "đã thấy ở mọi nơi, dường như trong mọi cuộc đời", "rồi đây khi ánh lửa trên tay nghỉ tắt", "chuyến đò đưa tôi sang bờ bên kia sẽ thắp cho tôi một ánh đèn dầu."]], "bg": "#1a1711", "lum": 0.62, "design": {}, "src": "anh/bia/song-trang-tieu-dieu.jpg"}, {"title": "một đứa trẻ", "date": "Tháng 7, 2025", "stanzas": [["tôi được sinh ra bởi mẹ, tôi là một đứa trẻ", "tôi lớn lên và đi học, tôi là một đứa trẻ", "tôi đánh vần, làm toán ngây ngô, tôi là một đứa trẻ", "tôi biết thích và ghét bạn bè, tôi là một đứa trẻ", "tôi biết ăn cắp lần đầu, tôi là một đứa trẻ", "tôi thòm thèm quà vặt, tôi là một đứa trẻ", "tôi thấy đau nhói ở ngực lúc đi tắm biển, tôi là một đứa trẻ", "tôi mọc lông ở nách và vùng kín, tôi là một đứa trẻ", "tôi xưng tội với Chúa ở trong nhà thờ mà lại dối gạt, tôi là một đứa trẻ", "tôi biết yêu lần đầu", "tôi căm thù", "tôi vị tha", "tôi tốt nghiệp, tôi thất nghiệp", "tôi đọc sách", "tôi sinh con đẻ cái, tôi là một đứa trẻ", "con tôi là một đứa trẻ", "mẹ tôi là một đứa trẻ", "và", "bà ngoại tôi là một đứa trẻ", "ông ngoại tôi là một đứa trẻ", "ba tôi là một đứa trẻ", "ông bà nội tôi là hai đứa trẻ", "họ đã chết dưới hình hài một người lớn xác và trái tim họ cằn cỗi chi chít những vết", "sần", "       sùi", "            chai", "                   sạn", "                          khô", "                                hạn", "                                       xước", "                                                trầy", "                                                        rách", "                                                                 thủng", "ấy vậy mà linh hồn họ tựa một con chim lông còn ướt ối với bàn chân yếu ớt chỉ vừa mới phá vỡ lớp vỏ", "không thể biết được cuộc đời", "khi con chim ấy dang rộng đôi cánh trên trời", "cũng là lúc xác thân vùi vào lòng đất", "hay tan thành tro bụi"], ["những đứa trẻ này đã sinh ra những đứa trẻ khác", "đứa trẻ như tôi sẽ hoặc không sinh thêm những đứa trẻ khác (đó là câu chuyện của thời đại)", "nếu có, rất có thể tôi sẽ sinh ra", "một đứa trẻ cha sứ", "một đứa trẻ bán cơm", "một đứa trẻ ăn uống trên mạng", "một đứa trẻ giáo viên", "một đứa trẻ chết yểu", "một đứa trẻ khó tiêu", "một đứa trẻ bác sĩ", "một đứa trẻ biến thái", "một đứa trẻ bắt chước", "một đứa trẻ LGBTQIA+", "một đứa trẻ bánh mì đặc ruột bánh mì nóng đây", "một đứa trẻ viết thơ viết nhạc", "một đứa trẻ ước mơ làm người lớn", "một đứa trẻ tù nhân", "một đứa trẻ ngoại tình", "một đứa trẻ du học sinh"], ["ôi, tôi muốn kêu gọi những đứa trẻ hãy thôi gồng mình, hãy ôm lấy nhân tính nguyên sơ", "đồng thời tôi cũng ghét một đứa trẻ hay kêu gọi vô bổ như tôi lúc này", "nếu có đứa nào tôi không ưa mà như thế thì tôi ghét và nó nhận nó là một đứa trẻ thì tôi chửi", "tôi chỉ là đang thấy", "những trò mà tôi không thích mọi người làm thật kệch cỡm và ghê tởm", "những trò mà tôi thích mọi người làm thật tuyệt vời và đáng ngưỡng mộ", "phần nào đó trong bản năng của tôi muốn những trò tôi ghét bớt phiền đến tôi và những trò tôi hảo chầm chậm lại để tôi còn học tập, theo kịp và vượt mặt"], ["chứ mà thật sự thì", "họ có thấy giống tôi không?", "họ có thấy mình là một đứa trẻ không?", "tôi thử phân tích và thấy tôi là", "một đứa trẻ có mục đích"]], "bg": "#1c170f", "lum": 0.843, "design": {"lh": 2.3}, "src": "anh/bia/mot-dua-tre.jpg"}, {"title": "thăm mộ", "date": "Tháng 7, 2025", "stanzas": [["khi nửa đêm thức giấc", "tôi hỏi mèo con đang rù rì bên cạnh", "liệu nó có muốn một ngày cùng đi thăm mộ những con mèo mà tôi đã từng nuôi không", "mộ của chúng nằm dưới một gốc thông già", "gốc thông đã già, bị thương, bị bệnh", "rồi chết", "cũng giống như cha tôi", "ông nằm ngay bên cạnh"], ["tôi tạm rời quê hương", "không mang theo một lời chửi rủa nào", "đêm đêm khi tôi nhìn thành phố từ dưới thấp", "hồn tôi là một con côn trùng vo ve", "vo ve, vo ve, vo ve", "những tiếng đập cánh liên hồi khắc khoải", "mãi không chạm được mặt trời", "mãi mãi chỉ là bóng đèn", "côn trùng vo ve sống từng đám", "bầy đàn rao giảng về khoảng thời gian để sống còn lại"], ["một tiếng kèn xe"], ["tôi tự hỏi ngoài kia người ta làm gì để viết", "tôi tự hỏi, ai muốn người khác đọc được những trần trụi của mình", "tôi chưa từng viết ra hết thảy", "có một ngày", "ngồi trước mộ cha tôi - một người đã chết", "tôi giấu nhẹm đi những điều lẽ ra nếu muốn thì tôi hoàn toàn có thể nói", "tôi chỉ ca vài câu", "tôi ngắt một nhánh cỏ"], ["một con muỗi đốt vào chân tôi", "mà hình như loài muỗi, chúng đốt mỗi ngày", "và cỏ cây", "cỏ cây bị ngắt, chặt đi mỗi ngày", "quán xá bán buôn mỗi ngày", "đắp bồi đục khoét bê tông cốt thép mỗi ngày", "sóng vỗ bờ mỗi ngày", "gió thổi mỗi ngày", "những đám lửa cháy mỗi ngày", "tất cả chúng khi lớn khi bé, khi to khi nhỏ", "khi âm ỉ, khi lại thật khoan thai", "con người chết đi", "chúng ta yêu một người đã không còn             mỗi ngày", "hãy nhìn xem", "những rung rinh đời sống", "vẫn lung linh sống động", "dù bầu trời có rách toang mỗi ngày"], ["tôi vẫn hát một bài hát", "tôi nghĩ rằng tôi chưa bao giờ có thể hiểu được", "tôi (chỉ) hát như ru ngủ", "cha của tôi đã ngủ thật yên", "tại sao cuộc đời lại để tôi xuất hiện ở đây, trước mộ của cha", "để khi tôi trở về", "ké đầu ngựa và cỏ xước bám trên từng xớ vải áo quần", "níu chân", "nhìn ra phía xa, thấy một huyệt mộ vừa được đào", "lại một người cũ mới nằm xuống", "còn bọn xin đểu tiền chăm mộ", "nếu không cho e chúng sẽ phá mộ phần", "tôi vẫn sợ hãi chúng như sợ một định đoạt", "\"bài thơ này quá dài!\" - ôi không người ơi đây chỉ là một lời tự sự", "\"bài hát này nghe giống ông kia\" - ôi không người ơi đây chỉ là một lời tự sự", "\"bức tranh này bố cục lủng lẳng\" - ôi không người ơi đây chỉ là một lời tự sự", "\"tượng này xấu\"", "\"món này dở\"", "\"đàn lệch nhịp rồi\" - ôi không người ơi đấy chỉ là một lời tự sự", "\"mày yêu ông ấy lắm mới nói chuyện trước mộ nhiều giờ như thế, đưa tiền đây\" - ôi không người ơi tôi chỉ đang tự sự", "hay                mọi lời tự sự đều như nhau?"], ["ở tuổi hai mươi", "tôi học được cách rù rì như mèo, thủ thỉ như đi thăm mộ", "tôi học được cách chửi cho thật đã cuộc đời chó má khi thấy ứ đọng lồng ngực", "đó là khi những tác phẩm đã quá tải", "tôi học được cách linh hoạt những bản thể", "tôi học được cách bắt chước", "như một lẽ tự nhiên", "tôi tìm về mộ cha khi thấy nhớ", "thấy thương", "thấy một miền thuỳ dương cát trắng", "thấy nắng thấy mưa", "thấy một cuộc sống đủ vừa", "rồi tôi sẽ không còn thấy sợ hãi", "bọn xin tiền chăm mộ", "bọn bầy đàn rao giảng về thời gian", "bất kì ai", "tôi sẽ có thể đứng, ngồi, nằm", "bao lâu tuỳ tôi định đoạt", "tôi sẽ viết thật lâu", "tôi sẽ vẽ thật lâu", "tôi sẽ hát thật lâu", "tôi sẽ thăm mộ cha tôi thật lâu."]], "bg": "#161814", "lum": 0.467, "design": {}, "src": "anh/bia/tham-mo.jpg"}, {"title": "về người tôi ghét một nửa", "date": "Tháng 11, 2025", "stanzas": [["một chiều tâm tư tôi dạo trên mặt sông quê mình xanh sóng", "tôi nghĩ về những gì bạn viết—tôi đã đọc", "chúng ta là những đứa trẻ lớn lên dưới cùng một bầu trời", "đời sống đã từng thật cay nghiệt với cả bạn và tôi"], ["cánh bướm mãi quẩn quanh trên những bụi hoa bãi cỏ", "nhà phao, nhà bóng", "món đồ chơi đủ màu bay rất cao nơi đông nghịt người", "một cánh tay vung thẳng tung một màn lưới thưa thớt từ mạn đò", "bắt lấy hồn của tôi và bạn thuở ấu thơ đó", "chúng ta đều tò mò về thế giới"], ["tôi yêu ngày xưa ấy của tôi", "lớn hơn rồi nhìn về thật kì diệu", "thật mạnh mẽ và cũng thật mềm yếu", "tựa dòng sông lấp lửng một buổi chiều"], ["cũng là dòng sông ấy đã nuôi dưỡng cả thân tôi và bạn", "những thế hệ gia đình tôi và gia đình bạn", "dòng sông đã ôm trọn cả thành phố", "lách qua những nhánh đường nhìn tà áo trắng chúng ta lấp lánh", "ôi dòng sông, tôi và bạn cứ tha thiết dòng sông", "những đã bao giờ bạn nhảy ùm xuống?"], ["ta đều—cùng vô vàn những thứ", "nhưng dường như chưa giống nhau bao giờ", "khi tôi soi mình thật kỹ, nhìn bạn thật kỹ", "đã tưởng chừng như tôi nhìn thấy nơi bạn những gì tôi chối bỏ nơi tôi", "nhưng đã nhìn vào sâu thẳm những tối tăm hẹp hòi đó rồi", "vẫn là đang loanh quanh lạc ở bìa rừng", "chút ánh sáng từ quê nhà kéo tôi trở lại", "có thể nơi rừng thiêng: một con thú cùng một vị thần", "bởi cả hai, rừng bất khả xâm phạm"], ["trong mênh mông những ngày tháng", "bạn đã nhìn thấy tôi—tôi nhìn thấy bạn", "tôi không nhớ bạn đã dùng ánh mắt nào và tôi có đôi mắt nào thời ấy", "bạn đã lớn lên rồi", "tôi đã lớn lên rồi", "chúng ta vẽ những đường cong, đường thẳng, đường đứt quãng thật tự do", "khi trời trở lạnh, hàng quán nghi ngút khói", "trên quê hương yêu dấu bao đời", "tôi không mong chúng ta sẽ gặp lại", "chúng ta chưa từng là bạn của nhau."]], "bg": "#141817", "lum": 0.992, "design": {}, "src": "anh/bia/ve-nguoi-toi-ghet-mot-nua.jpg"}, {"title": "cây ớt", "date": "Tháng 9, 2025", "stanzas": [["sáng nay thức dậy, con mèo của tôi mắc kẹt ở lỗ thông gió", "sau khi tìm được đường ra, nó nhảy xổ vào cây ớt ở ban công", "những gì bị bỏ bê một thời gian mà biến mất trước thời hạn biến mất", "dẫu biết sẽ biến mất", "vẫn tiếc thương", "tôi xuýt xoa", "tôi đã tưởng rằng những cái lá bé xanh dễ ghét ấy sẽ chết", "bởi cây ớt ở đỉnh cao sai trái", "ngày tôi đón nó về", "xanh tím đỏ", "để có cảm giác được thâu hoạch", "tôi ở đỉnh cao sai trái"], ["bàn tay tôi chưa từng được trồng lấy một cây ớt", "vì đàn chim là những người thợ gieo trồng giỏi nhất", "chúng đã gieo rất nhiều hạt nên rồi sẽ có cây lên mầm", "chúng đã làm việc đó suốt nhiều thế hệ", "nhưng duy chỉ với những nhà có khoảng sân, mảnh vườn, có chậu đất, có sân thượng", "đêm qua tôi mơ về căn nhà cũ có gác mái gỗ mà ba mẹ tôi đã chung tay xây dựng", "thật vuông vức", "tròn vẹn", "để những năm tháng đẹp đẽ của tôi nương nhờ", "căn nhà không có khoảng sân, mảnh vườn, chậu đất, sân thượng", "ấy vậy trong nhà tôi vẫn hay ho sặc sụa vì mùi ớt bột xay của mẹ", "tôi thầm cảm ơn căn nhà, cảm ơn đàn chim đã không gieo hạt", "mỗi khi thấy mẹ từ chợ đầu mối về", "mang theo một bao tải ớt"], ["tôi thông thuộc các loại ớt và các món ớt từ hồi bốn tuổi", "ớt bom, ớt xiêm rừng, ớt chỉ trời, ớt chỉ đất", "nhiều đến nỗi tôi nghi ngờ rằng liệu ớt có phải là một từ có thật?"], ["mẹ tôi không còn ăn cay nữa sau khi tôi ra đời", "những bà hàng xóm nói rằng sự cay nghiệt ấy đã chuyển lên người tôi", "lớn lên rồi sẽ thấy", "tôi không quan tâm và chỉ thấy lạ", "mẹ tôi vẫn ho và bỏng ớt mỗi ngày", "đêm, đèn tắt, trời tối om", "mẹ ngâm tay vào chậu nước đi ngủ", "bởi cái gì xấu thì giấu đi"], ["tôi lớn lên một nửa thành thị", "tôi lớn lên một nửa nông thôn", "không đủ để nhảy vào những ụ rơm trên cánh đồng", "không đủ để lơ đãng với tiếng xe cộ và ánh đèn nhấp nháy", "ở gần một ngôi chợ bán trầu", "tôi nắm tay mẹ lõm bõm", "đi đến cuối chợ là bờ sông phát sáng", "những con cá vừa cập bến ánh mắt trong vắt trong", "dần chuyển đục ngầu đục trong nồi kho của mẹ tôi đầy ớt xanh ớt đỏ", "những món kho cay nồng hít hà", "đêm đêm mơ được ngủ trên căn gác gỗ", "tôi vẫn nghe mùi cá"], ["ở trong thành phố không phải quê hương mình", "mọi thứ thật nhạt nhẽo", "người yêu trước đây của tôi một lần đưa tôi về ăn cơm", "tôi bẽn lẽn như vẫn luôn bẽn lẽn", "cá thịt chỉ kho trăng trắng", "rau rủng chỉ tỏi", "và món canh chẳng thơm mùi ruốc nổi", "thuở ấy anh còn hiểu tôi", "lén xin vài trái ớt mà ở miền nam ăn nhiều", "hình như người lớn nơi nào cũng thích đùa giỡn", "dì anh nói rằng tôi ăn cay nhiều như thế tức máu ghen rất dữ", "anh nên cẩn thận để biết chiều lòng tôi", "tôi biết ơn dì", "vì cái gì tốt thì khoe", "ở trong thành phố không phải quê hương mình", "mọi thứ thật nhạt nhẽo", "tôi nhớ về những bà hàng xóm", "tôi đã không bao giờ ăn ớt nữa ở trong thành phố không phải quê hương mình", "tôi đã dỡ bỏ một cảm giác từng che chắn cứu rỗi tôi khỏi (sự nhạt nhẽo của) những bữa ăn ở trong thành phố không phải quê hương mình"], ["tôi cá rằng ở cái xóm nhỏ của tôi không ai biết tôi vẫn đang tập viết", "vốn dĩ họ vẫn đang tìm cách để tồn tại", "họ sẽ không quan tâm", "họ sẽ cười khi tôi nói nhiều về cây ớt", "họ sẽ kể về những lần tôi trộm ớt nhà họ để làm ruốc chấm với mấy trái xoài tôi trộm ở nhà khác", "nhưng nếu họ biết tôi viết về họ", "sẽ bắt tôi xóa đi", "vì tốt mới nên khoe"], ["ngày nọ", "tôi trở về quán ghế nhựa đỏ", "gọi một bát bánh canh cay xé lưỡi", "từng vá múc thông tin nóng hổi", "người chị sống đối diện nhà lãnh án tử", "vì cái thứ mà mẹ tôi đã sống chết căn dặn anh chị em tôi đừng bao giờ động vào", "tôi ăn tô thứ hai", "cay xé lưỡi", "cay xé mắt và cuống họng", "cay xé cả lần tôi sáu tháng tuổi ngồi trên ghế đỏ nhà chị ngày sinh nhật chị", "được chụp nhờ một tấm ảnh đầu tiên đẹp nhất trong đời", "bác thợ chụp đã chỉnh cái ghế nhựa đỏ thành cái ghế mây thật đẹp", "vì cái gì xấu xí thì đừng để lộ ra", "tôi chẳng thể", "ôi mưa trắng xóa ơi", "tôi chẳng thể chỉnh gì được lúc này"], ["ôi mái tôn ủ dột ơi!", "ôi bóng đò mờ mịt ơi!", "ôi ẩm ướt lạnh lẽo thấu xương ơi!", "đã nhiều lần tôi hỏi về quê hương", "năm mẹ tôi sinh ra, thành phố đỏ rực máu lửa", "mẹ tôi chưa từng kể một lời", "những viên kẹo rớt rơi mặt đất", "đám trẻ chúng tôi thi nhau lượm nhặt", "vàng mã cháy rực hắt lên mặt chúng tôi những hơi nóng khó tả", "nhăn nhúm như không gian lúc ấy bị túm lại vò nhàu", "nhà tôi công giáo", "và cũng không có lấy một cái sân để đốt lửa", "nên mẹ tôi đã nhóm một đóm lửa nhỏ trong bếp", "nấu một mâm cơm chứa một đóm lửa nhỏ khác", "những đóm lửa nho nhỏ nồng ấm ấy đã ủ ấp tôi cho đến mãi sau này"], ["ở trong thành phố không phải quê hương mình", "mọi thứ thật nhạt nhẽo", "cơn mưa nặng hạt này thấm vào da tôi những bụi những a-xít", "thấm vào cây ớt ban công của tôi những bụi những a-xít", "như đàn chim đã chăm chỉ rải xuống mặt đất rất nhiều những hạt giống ớt", "tôi nói với cơn mưa rằng", "tôi đã nuốt rất nhiều hạt", "tôi nghĩ rằng trong bụng mình đã mọc lên một cây", "tôi mong hạt đã nảy mầm", "là hạt ớt của quê hương", "và nhìn kìa!", "cây ớt ban công", "vừa đậu quả."]], "bg": "#131a11", "lum": 0.518, "design": {}, "src": "anh/bia/cay-ot.jpg"}, {"title": "mướp chín", "date": "Tháng 9, 2026", "stanzas": [["quả mướp chín", "trên", "mái nhà", "vào mùa mưa", "thối rữa"]], "bg": "#1f1c0d", "lum": 0.682, "design": {"ink": {"src": "anh/chu-viet/muop-chin.png", "r": 2.1739, "em": 26.5}}, "src": "anh/bia/muop-chin.jpg"}, {"title": "tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời", "date": "Tháng 4, 2026", "stanzas": [["con chim mới hót sáng nay", "lay tôi thức dậy", "mà quên rồi giấc mơ", "đêm qua mơ, đẹp như mơ", "nên tìm cách nhớ", "như là con chim", "tìm sâu trên lá im lìm"], ["sáng trời", "sâu hoá bướm, giấc mơ đã là áng mây lững lờ", "vươn mình dậy nhưng chẳng thể với được", "có biết không?", "tỉnh táo", "tự thuở nào vần thơ còn nóng hổi", "nhìn những cánh chim bay mà lững thững", "giữa những ngã đường", "già cỗi ý tưởng", "đừng nặng nề nhau nhé", "nhủ rằng hãy tự bay cao"], ["tối trời", "chim rúc rích chim, giấc mơ hẳn còn đong đưa chiêm chiếp mi mắt", "buồn thõng thân thể mà ôm trọn", "có biết không?", "mộng mơ", "nơi nào cho đủ rộng — cất giữ hết thảy những điều ấy", "cánh chim mang về mùa màng, âm nhạc, vô tư, phong phú", "líu lăng chao liệng", "bay vững vàng vọt lo thấp thỏm", "đừng rơi nhé", "nhủ rằng vẫn còn lửng lơ"], ["là tôi đã mơ nhiều hay chưa từng", "đôi cánh trên lưng còn chưa mọc đã đòi vỗ", "lô nhô ven trời", "đành mượn tạm sắc màu của những cây bút lăn rơi", "đi hoài những nét mới", "những điều mới, hẳn còn mới", "quây quần trên trang giấy vô tận", "lại phải cần đi cùng nhau", "có lẽ chính là như vậy"], ["tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời"]], "bg": "#1a1611", "lum": 0.863, "design": {}, "src": "anh/bia/toi-ngan-ngo-se-ve-nhung-chu-chim-mai-de.jpg"}, {"title": "ngày hôm nay bình thường", "date": "Tháng 6, 2026", "stanzas": [["hôm nay là một ngày bình thường", "hôm nay đã đổi thay", "từ ngữ ngày trước", "hôm nay đã không còn dùng nữa"], ["hôm nay dẫu vẫn vậy", "hôm nay là một ngày bình thường", "hôm nay viết", "hôm nay đọc ngày hôm nay"], ["hôm nay là một ngày bình thường", "hôm nay mưa nhiều", "hôm nay trời tối muộn", "hôm nay gió bay"], ["hôm nay cũng lại có nắng", "nắng cháy tóc hôm nay", "hôm nay khác ngày hôm qua", "hôm nay là một ngày bình thường"], ["tầu lá chuối xanh hôm nay", "cũng là buồng chuối vàng trĩu nặng hôm nay", "cũng là hoa chuối đỏ rực hôm nay", "là đèn giao thông của dòng chảy hôm nay"], ["hôm nay màu xanh úa vàng", "người ta thều thào thở", "những cánh cửa nghêu ngao mở", "tất cả là vì hôm nay"], ["bình minh hôm nay", "cùng với hoàng hôn hôm nay", "chúng rượt đuổi nhau hôm nay", "muốn chạy trốn tạm về ngày trước"], ["hôm nay nhớ về ngày trước", "là một phần thân thể của hôm nay", "mà như nhát kéo cắt thật ngọt mái tóc", "rất rõ ràng trong một khoảnh khắc không thể nối lại"], ["hôm nay trời đêm ô nhiễm ánh sáng", "hôm nay dòng sông ô nhiễm những nhánh nước xả vào", "hôm nay công viên ô nhiễm những tụ tập", "và thời gian ô nhiễm hôm nay"], ["hôm nay cứ hay tơ tưởng kẹt cứng với ngày trước", "hôm nay không thể vọt nhảy về phía trước", "hôm nay chẳng thể biết được sau và trước", "vì rồi hôm nay cũng sẽ trở thành ngày trước"], ["hôm nay có bao giờ nghĩ", "đất yêu nước như ngày hôm nay", "em yêu anh như ngày hôm nay", "thật đẹp đẽ mà cũng lẹ làng trở mặt quay lưng"], ["hôm nay di chuyển", "hôm nay dối gạt", "hôm nay quyến rũ", "hôm nay thật thà", "và sao mà chán ngắt", "hôm nay thắc mắc", "hôm nay ngỡ ngàng nhận ra", "người bạn ngày hôm qua", "đã không còn gặp được nữa"], ["hôm nay có muốn nói về hôm qua không?", "hôm qua có quen biết ngày hôm sau không nhỉ?", "hôm nay có quen biết ngày hôm sau không nhỉ?", "hôm nay có giận vì hôm sau cứ mãi lỗi hẹn?", "hôm nay thấy thế nào?", "hôm nay có muốn trả lời hay chỉ thích lặng đi?"], ["những người bạn hôm nay", "những người tình hôm nay", "những người thù địch hôm nay", "những người thầy hôm nay", "đã ở lại cùng với ngày hôm nay"], ["những vì sao hôm nay", "chén cơm nguội hôm nay", "hoa thiên điểu hôm nay", "gối chăn hôm nay", "tiếng sáo hôm nay", "chiếc thuyền lá tre hôm nay", "giấc ngủ hôm nay", "giấc mộng hôm nay", "giấc ác mộng hôm nay", "là một hôm nay thật mới mẻ", "luôn là một hôm nay thật mới mẻ"], ["em cầm tay hôm nay thỏ thẻ", "hôm nay ngượng mặt chín đỏ", "dòng chảy dừng lại nhẹ bẫng", "đôi mắt em chớp lại lồng vào hàng mi hôm—nay—mở—ra"]], "bg": "#111a15", "lum": 0.537, "design": {}, "src": "anh/bia/ngay-hom-nay-binh-thuong.jpg"}, {"title": "tổng vệ sinh", "date": "Tháng 10, 2026", "stanzas": [["hôm nay em sẽ dọn"], ["em sẽ dọn trong cống kẹt mớ tóc", "em sẽ dọn giữa khe lược mắc mớ tóc", "em sẽ dọn trên sàn vương mớ tóc", "em sẽ dọn trước gương dính mớ tóc", "em sẽ dọn da đầu thưa mớ tóc", "em sẽ dọn ý định kết lại những sợi đã rụng thành một mớ tóc", "em sẽ dọn giấc mơ em mơ suông dài mớ tóc"], ["em sẽ dọn giường ngủ phủ đầy quần áo", "em sẽ dọn sô pha phủ đầy quần áo", "em sẽ dọn ghế ngồi phủ đầy quần áo", "em sẽ dọn bàn học phủ đầy quần áo", "em sẽ dọn cánh cửa phủ đầy quần áo", "em sẽ dọn lớp gạch men phủ đầy quần áo", "em sẽ dọn tủ gỗ phủ đầy quần áo", "em sẽ dọn mình mẩy em phủ đầy quần áo", "em sẽ dọn những giấc mơ em mơ phủ đầy quần áo"], ["em sẽ dọn chén cơm bỏ dở", "em sẽ dọn bát canh bỏ dở", "em sẽ dọn đĩa rau bỏ dở", "em sẽ dọn thuốc men bỏ dở", "em sẽ dọn nước nôi bỏ dở", "em sẽ dọn bộ phim bỏ dở", "em sẽ dọn quyển sách bỏ dở", "em sẽ dọn lá thư bỏ dở", "em sẽ dọn bài thơ bỏ dở", "em sẽ dọn giai điệu bỏ dở", "em sẽ dọn bức tranh bỏ dở", "em sẽ dọn mo cau thêu con chim bỏ dở", "em sẽ dọn chiếc quần thủng đáy khâu bỏ dở", "em sẽ dọn ý tưởng mở một quán chay bỏ dở", "em sẽ dọn những giấc mơ em mơ bỏ dở"], ["em sẽ dọn những mối liên hệ họ kì lạ", "em sẽ dọn những mối quan hệ họ kì lạ", "em sẽ dọn những kí ức nhập nhằng họ kì lạ", "em sẽ dọn những cảm giác họ kì lạ", "em sẽ dọn những cảm xúc họ kì lạ", "em sẽ dọn những cuộc đối thoại họ kì lạ", "em sẽ dọn những lời nói họ kì lạ", "em sẽ dọn những ánh mắt họ kì lạ", "em sẽ dọn những động chạm họ kì lạ", "em sẽ dọn những nhung nhớ họ kì lạ", "em sẽ dọn những giấc mơ em mơ họ kì lạ"], ["em sẽ dọn cành cây chết khô đứng yên", "em sẽ dọn cánh quạt chật cứng bụi đứng yên", "em sẽ dọn đống cứt mèo đứng yên", "em sẽ dọn vải vụn đứng yên", "em sẽ dọn kiến thức đứng yên", "em sẽ dọn dư luận đứng yên", "em sẽ dọn chính sách đứng yên", "em sẽ dọn cân nặng đứng yên", "em sẽ dọn lượt nghe nhạc đứng yên", "em sẽ dọn danh sách việc đã làm đứng yên", "em sẽ dọn giấc mơ em mơ đứng yên"], ["em sẽ dọn dòng nước trong bồn rửa chén chảy", "em sẽ dọn dòng nước trong vòi tắm chảy", "em sẽ dọn dòng nước trong bình tưới chảy", "em sẽ dọn dòng nước trong đám mây chảy", "em sẽ dọn dòng nước trong lòng đất chảy", "em sẽ dọn dòng nước trong mao mạch em chảy", "em sẽ dọn dòng nước trong miệng em chảy", "em sẽ dọn dòng nước trong quần em chảy", "em sẽ dọn dòng nước trong mắt em chảy", "em sẽ dọn dòng nước trong giấc mơ em mơ chảy"], ["hôm nay em sẽ dọn", "giấc mơ", "giấc mơ chính đáng làm sao", "giấc mơ thực tế làm sao", "giấc mơ là sự thật", "chỉ có giấc mơ là sự thật", "giấc mơ thật thà", "giấc mơ thật là", "giấc mơ"]], "bg": "#131b10", "lum": 0.827, "design": {}, "src": "anh/bia/tong-ve-sinh.jpg"}, {"title": "con không biết phải gọi bài thơ này là gì", "date": "Tháng 9, 2026", "stanzas": [["những người phụ nữ nóng tính nấu ăn rất ngon và đôi mày nhíu lại", "rồi quát ông chồng lề mề bưng bê chậm chạp cho khách", "xóm của tôi đầy những người phụ nữ nóng tính nấu ăn rất ngon với đôi mày nhíu lại", "mẹ tôi là người phụ nữ nóng tính nấu ăn rất ngon với đôi mày nhíu lại"], ["đôi mày ấy nhíu lại khi chúng tôi trốn học", "đôi mày ấy nhíu lại khi mưa lũ dập từng cơn và gió sắp cuốn bay mái nhà", "đôi mày ấy nhíu lại khi gã chồng lại lè nhè say xỉn", "đôi mày ấy nhíu lại khi đọc chữ trên dòng thơ con gái"], ["những người phụ nữ nóng tính nấu ăn rất ngon với đôi mày nhíu lại ở xóm của tôi luôn mong mình là thế hệ cuối cùng của thế hệ những người phụ nữ nóng tính nấu ăn rất ngon với đôi mày nhíu lại"], ["", "có những cô con gái thừa hưởng sự nấu ăn rất ngon của mẹ và đôi mày nhíu lại", "mang theo một ông chồng trẻ ngày ngày nấu những món ăn trẻ "], ["có những cô con gái đã dũng cảm chấm dứt chuỗi bán buôn đầm đìa mồ hôi", "cả ngày nắng đổ lửa hay đêm mưa buốt lạnh", "cô con gái lớn lên", "bập bõm", "quay đầu", "trái ớt", "chợ đầu mối", "biển sớm", "ghe", "con ghẹ", "bập bẹ", "mẹ của mẹ", "2 giờ sáng"], ["", "hơn hai mươi năm cuộn mình cuốn chiếu trong lòng đất mẹ", "lặng nghe tiếng mẹ", "để biết được tiếng mẹ", "để học được tiếng mẹ", "để nói được tiếng mẹ", "mẹ yêu dấu của con", "mẹ là mẹ và mẹ là đất mẹ yêu dấu của con"], ["oh mom, ", "no language has ever given me", "a land as free,", "a mind as keen,", "as the tiếng nói you gave me", "I only wish you could know"], ["", "", "đất và nước có những khi mặn nồng cay đắng", "từ và ngữ có những khi chua chát cay độc", "thế và hệ có những phụ nữ chúng mình, con và mẹ và mệ và cố", "ta ở trong nhau để tách ra khỏi nhau", "tách ra xa nhau để tiến về gần nhau", "để mãi mãi nhớ nhau"], ["con đi rồi, mẹ có nhớ con không?"], ["con nhớ mẹ!"], ["kí ức của con về mẹ là những đoạn phim nhiễu loạn", "trong đĩa CD trầy xước", "tắt đài", "mẹ lại đứng trước con như bây giờ", "già nua và bệnh tật"], ["mẹ à, chúng mình còn vụng về quá", "thật vụng về", "con vụng về mẹ buồn xé lòng", "mẹ vụng về cắt đứt ruột gan con", "ta vụng về cùng nhả ra những phi tiêu", "cắm thẳng vào nhau"], ["con vụng về cố khóc cho mẹ biết", "mẹ vụng về cố nén để con chớ hay", "ta cùng vụng về cái tôi lung lay", "rồi vụng về chữa cho nhau"], ["con nhớ có lần mẹ nói ước gì mẹ lột được da mình đắp lên vết thương đang hở hang của con"], ["mình vụng về những lần đầu làm mẹ và làm con, mẹ nhỉ?"], ["mình là hai em bé con lớn lên cùng nhau mẹ nhỉ?"], ["con nhắc lại ý trong bài thơ trước con viết mang theo hình bóng mẹ: "], ["“tôi sinh con đẻ cái, tôi là một đứa trẻ", "con tôi là một đứa trẻ", "mẹ tôi là một đứa trẻ", "và", "bà ngoại tôi là một đứa trẻ", "đã chết dưới hình hài một người lớn xác và trái tim cằn cỗi chi chít những vết", "sần ", "       sùi", "            chai", "                   sạn", "                          khô ", "                                hạn ", "                                       xước", "                                                trầy", "                                                        rách", "                                                                 thủng", "ấy vậy mà linh hồn tựa một con chim lông còn ướt ối với bàn chân yếu ớt chỉ vừa mới phá vỡ lớp vỏ", "không thể biết được cuộc đời", "khi con chim ấy dang rộng đôi cánh trên trời", "cũng là lúc xác thân vùi vào lòng đất", "hay tan thành tro bụi”"], ["và mọi thứ con viết đều đi cùng hình bóng mẹ", "và nỗi nhớ về mẹ khi mình xa nhau, mẹ ơi"], ["mẹ có nhớ mẹ của mẹ không?", "mẹ có nhớ mẹ của mẹ khi mẹ viết thư cho con không?", "mẹ có còn nhớ về mẹ, về mệ, về cố, về sơ của mẹ không?", "mẹ có mơ về con ngày trước của mẹ như con mơ về cháu của mẹ sau này không?", "cái tên mà mẹ mong muốn ngày trước, có phải là tên của con bây giờ không mẹ?", "con giờ đây ở gần nhất hiện tại nhìn về xuyên suốt chúng ta", "không còn thấy một ranh giới nào cả"], ["", "mẹ à, mệ à, cố ạ, sơ ơi", "trong mênh mông thời không", "chúng ta đã bồng bế nhau", "chúng ta ôm nhau rồi vuốt trên mái đầu nhau", "hát ru cho nhau", "truyền cho nhau một dòng sữa", "chúng ta đã xếp ngay ngắn lên nhau", "mẹ à, mệ à, cố ạ, sơ ơi", "thế hệ chúng ta", "đã đóng lại và cũng mở ra", "những đứa trẻ già."]], "bg": "#161912", "lum": 0.514, "design": {}, "src": "anh/bia/con-khong-biet-phai-goi-bai-tho-nay-la-g.jpg"}, {"title": "lông tay", "date": "Tháng 2, 2024", "stanzas": [["những sợi lông vô hình trên tay", "khi mơn man gió thổi", "chúng dựng mình thẳng đứng"]], "bg": "#1a1912", "lum": 0.875, "design": {"ink": {"src": "anh/chu-viet/long-tay.png", "r": 1.7945, "em": 24.5}}, "src": "anh/bia/long-tay.jpg"}, {"title": "điều mà ta đều biết", "date": "Tháng 5, 2026", "stanzas": [["con đã quên khoảnh khắc cuối cùng", "ba chủ động nhắm mắt", "thành phố thối um", "mùi mồ côi", "vào ngày mà con trở nên đãng trí"], ["một cơn mưa", "không làm ướt được gì", "ở thế gian", "nói quên là vừa quên mà vừa nhớ", "nhìn ba", "tình yêu", "vĩnh viễn", "con yêu vĩnh viễn", "và mong vĩnh viễn đừng biến mất"], ["một trận nắng", "không hong khô được gì", "ở thế gian", "nói nhớ là vừa nhớ mà vừa quên", "quay lưng", "vô tận", "con thương vô tận", "và mong biết điểm mà vô tận bắt đầu"], ["có cái nhà không nóc", "đêm con nằm khóc", "nước chảy ngược vào trong", "đôi tai", "tự trở lại mình", "tự ru mình", "tự canh chừng mình", "tự nhận ra mình", "tự tan trường mình", "tự mình đón mình về nhà"], ["con thương thật ngông cuồng", "con thương thật hỗn xược", "ngủ đi ba", "ngủ ngoan đi ba", "con thương thật thà", "con thương rất thật thà", "con thương rất lắm thật thà"], ["một bàn tay sao mà lạnh ngắt", "một đôi mắt sao mà không nhìn", "một cái kết sao mà lặng thinh", "một hành tinh", "                        sao mà", "                                      chết"], ["hãy đi đi", "con sẽ già", "sẽ trọc đầu", "sẽ trở thành thần tượng của ba", "sẽ được nhìn mẹ", "và được mẹ nhìn", "sẽ có nhiều bức ảnh hơn", "trong thời đại đổi mới rất nhanh", "ngày một nhanh", "nhanh mỗi giờ", "mỗi phút", "mỗi giây", "và sẽ vẫn ở đây"], ["con sẽ không đi về phía kia", "vì con chưa bao giờ biết về phía kia", "và ba chưa từng trở lại kể con nghe về phía kia", "đã hèn nhát trốn tránh", "những giấc mơ của con", "ngày một thưa thớt", "và nếu trở lại", "có phải", "sẽ là đứa trẻ non nớt", "trong thành phố mà con biết rất nhiều", "sẽ không là thành phố của ai", "phồn hoa lấp lánh", "sông và núi", "vững vàng trong bức tranh"], ["ngày mai con sẽ chửi tục", "chửi rất nhiều và chửi rất đã", "xong rồi sẽ ngồi xuống", "đọc lại", "hiểu lại", "để mà nhớ", "để mà quên", "về việc phải đi vá lốp xe", "về việc phải trái", "về việc họ cứ đi tìm danh tính người anh hùng", "về việc con đã biết người anh hùng chết", "về việc không còn ba"], ["ngủ đi ba", "ngủ ngoan đi ba", "con thương thật thà", "con thương rất thật thà", "con thương rất lắm thật thà", "con nói thêm điều này chắc là", "ta đều biết", "mẹ thương ba."]], "bg": "#191713", "lum": 0.588, "design": {}, "src": "anh/bia/dieu-ma-ta-deu-biet.jpg"}, {"title": "về ngôi nhà", "date": "Tháng 8, 2026", "stanzas": [["ở trong một thành phố chật đến nghẹt thở", "cả ở trong một thành phố rộng đến nghẹt thở"], ["hai thành phố như hai cái chân", "tôi cứ bập bênh qua lại", "thật nhịp nhàng", "đủ để nương tựa ngày và đêm", "và không có lấy một ngôi nhà"], ["tôi lặn xuống biển tìm ốc mặt trăng", "tôi bay lên tán cây tìm chim mỏ chéo", "tôi bò theo giọt đường tìm con kiến lửa", "tôi nhảy vọt đến trần tìm nhện", "tôi bơi trong vũng nước đọng tìm loăng quăng", "tôi chui vào hang tìm chuột đồng", "tôi hỏi: “các bạn có nhà không?”", "“ở đâu các bạn có nhà?”"], ["", "", "", "", "và rồi dường như tôi đã tọc mạch", "và rồi dường như tôi đã rướn người quá mạnh cố xen vào chốn riêng tư tôi không thuộc về", "và rồi tôi không nghe thấy được một câu trả lời nào", "và rồi như mọi lần, tôi chỉ còn cách tự mình trả lời."], ["về", "những ngôi nhà", "có khi thừa kế", "có khi chiếm đoạt", "có khi tự mình tìm thấy", "có khi tự mình làm lấy", "có khi được cùng làm lấy"], ["", "", "", "", "tôi có mơ về ngôi nhà như mơ về an toàn?", "khi trong đêm tối muộn", "trời mưa đen lấp lánh", "tôi dắt xe trên đường", "tiếng bước chân tôi giòn rụm", "nhà của con ốc sên ma vỡ tan"], ["tôi có mơ về ngôi nhà như mơ về đoàn tụ?", "khi những giọt máu mủ của ông bà", "quay về nơi từng chung sống ấm êm", "đo đạc để cắt ngôi nhà như cái bánh", "còn giấy gói kỷ niệm thì vò nhàu rồi vứt đi", "để sự thật im lìm dưới hai nấm mồ"], ["", "", "", "", "tôi có mơ về ngôi nhà như mơ về hạnh phúc?", "khi ngay bên tôi đây, trong nhà thuê", "khói bếp vẫn bốc lên", "dây đàn vẫn rung", "dòng điện vẫn xoay", "chúng tôi nhìn thấy nhau"], ["tôi có mơ về ngôi nhà như mơ về những ngày tôi không bao giờ có thể quay trở lại nữa?", "tan trường", "khăn quàng đỏ", "ba sửa xe và mẹ đang xào nấu", "ăn cơm xong là cả thế giới thuộc về tôi", "vậy thì tôi không bao giờ có thể có nhà rồi"], ["", "", "", "", "", "", "", "giấc mơ của tôi về ngôi nhà giống như thuỷ triều", "và hiện thực là cánh buồm gió đã thổi xa khơi"], ["", "", "", "", "", "", "tựa đầu lên đầu gối mình", "tôi dần dần nhìn thấy ngôi nhà duy nhất", "của tôi:", "tình yêu bên trong cơ thể này", "của một mình tôi"], ["", "vậy chăng tôi đã có nhà", "đã được tận hưởng niềm vui xưng là hàng xóm", "với ốc mặt trăng", "với chim mỏ chéo", "với kiến lửa", "với nhện", "với loăng quăng", "với chuột đồng", "với tất cả những hàng xóm khác trên hành tinh", "và với hư không."]], "bg": "#131818", "lum": 0.843, "design": {}, "src": "anh/bia/ve-ngoi-nha.jpg"}, {"title": "đừng hiểu", "date": "Tháng 6, 2026", "stanzas": [["đừng hiểu,", "đừng hiểu", "tâm trí như dòng sông phải không?", "từng từng nhánh rẽ ra", "cứ mải miết bơi", "mà chẳng biết có gì", "em đã dang cánh tay không đủ dài ra", "mà những cánh tay đủ dài lại không nắm lấy", "mặt đất rung chuyển", "bốn cái chân ghế", "lắc lư túi bụi", "em không thể cười", "và họ vẫn đang mở tiệc", "mặc kệ lời tựa đề", "rơi khỏi cái ghế", "gắng tỉa lại ngọn ngành câu chuyện", "xin đừng nhớ dùm em", "bởi nắm tóc năm xưa", "em còn giữ này", "khóa lại em không thể tơ tưởng", "về chùm cây chín mọng sân nhà", "và những ánh sao không thể soi rọi", "cho bàn tay khua đám lá"], ["đừng hiểu,", "đừng hiểu", "tâm trí như dòng sông phải không?", "tắm cho mát mà cũng thật cháy bỏng"], ["", "đừng hiểu", "đừng hiểu", "tâm tưởng như cỗ máy dịch chuyển tức thời phải không?", "em cắt tóc em hôm nay", "mẹ em nằm dài trên sàn như những sợi tóc rất dày của em ngày trước", "không cuộn mình lại", "tóc của mẹ là tóc của em", "mẹ là suối tóc của em", "chảy tới nơi em tôn kính", "những gương mặt méo mó trên bàn thờ linh hồn em", "đã ngước lên và hút thật nhẹ những đám mây vào bụng", "căng tức", "phía bên kia tinh cầu nóng ran", "con chim sẻ trong suốt", "cơm đã nguội mà anh lại ngã khỏi lưng ngựa", "làm sao mà hiểu được?"], ["", "đừng hiểu,", "đừng hiểu", "tâm tưởng như cỗ máy dịch chuyển tức thời phải không?", "bao giờ hết nhiên liệu?", "em nói vậy rồi, sao anh còn cố hiểu?"]], "bg": "#181414", "lum": 0.271, "design": {}, "src": "anh/bia/dung-hieu.jpg"}];
+/* nền chất liệu của từng bài (ảnh giấy, vải Nguyên gửi, theo thứ tự bài), đã cắt viền và thu nhỏ; lo, hi: màu chỗ tối nhất, sáng nhất của nền;
+   ink, veil: màu chữ và lớp phủ mặc định; cands: các màu gợi ý */
+var TEX = {"sông trăng tiêu điều": {"src": "anh/nen/song-trang-tieu-dieu.jpg", "avg": "#2f3237", "lo": [40, 44, 50], "hi": [53, 56, 61], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#26282c"], ["nhạt theo nền", "#e7ecf3"]], "ink": "#f7efe2", "veil": 0}, "một đứa trẻ": {"src": "anh/nen/mot-dua-tre.jpg", "avg": "#d6999d", "lo": [211, 147, 152], "hi": [217, 159, 157], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#3a181a"], ["nhạt theo nền", "#f3e7e8"]], "ink": "#1c1814", "veil": 0}, "thăm mộ": {"src": "anh/nen/tham-mo.jpg", "avg": "#5d4737", "lo": [70, 52, 43], "hi": [115, 91, 68], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#34271e"], ["nhạt theo nền", "#f3ece7"]], "ink": "#f7efe2", "veil": 0}, "về người tôi ghét một nửa": {"src": "anh/nen/ve-nguoi-toi-ghet-mot-nua.jpg", "avg": "#6b352f", "lo": [101, 47, 41], "hi": [117, 64, 58], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#391c19"], ["nhạt theo nền", "#f3e8e7"]], "ink": "#f7efe2", "veil": 0}, "cây ớt": {"src": "anh/nen/cay-ot.jpg", "avg": "#92443d", "lo": [139, 61, 55], "hi": [154, 77, 67], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#3a1b18"], ["nhạt theo nền", "#f3e8e7"]], "ink": "#f7efe2", "veil": 0}, "tôi ngẩn ngơ sẽ vẽ những chú chim mãi đến suốt đời": {"src": "anh/nen/toi-ngan-ngo-se-ve-nhung-chu-chim-mai-de.jpg", "avg": "#f7f1e4", "lo": [203, 210, 228], "hi": [255, 247, 228], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#403212"], ["nhạt theo nền", "#f3efe7"]], "ink": "#1c1814", "veil": 0}, "ngày hôm nay bình thường": {"src": "anh/nen/ngay-hom-nay-binh-thuong.jpg", "avg": "#363a18", "lo": [41, 45, 10], "hi": [72, 75, 46], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#363a18"], ["nhạt theo nền", "#f2f3e7"]], "ink": "#f7efe2", "veil": 0}, "tổng vệ sinh": {"src": "anh/nen/tong-ve-sinh.jpg", "avg": "#7b5e47", "lo": [95, 68, 46], "hi": [149, 118, 94], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#34281e"], ["nhạt theo nền", "#f3ece7"]], "ink": "#f7efe2", "veil": -12}, "con không biết phải gọi bài thơ này là gì": {"src": "anh/nen/con-khong-biet-phai-goi-bai-tho-nay-la-g.jpg", "avg": "#dddddc", "lo": [209, 211, 213], "hi": [226, 226, 224], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#292a28"], ["nhạt theo nền", "#f1f3e7"]], "ink": "#1c1814", "veil": 0}, "điều mà ta đều biết": {"src": "anh/nen/dieu-ma-ta-deu-biet.jpg", "avg": "#8a6c3f", "lo": [127, 98, 51], "hi": [148, 118, 75], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#382c1a"], ["nhạt theo nền", "#f3eee7"]], "ink": "#f7efe2", "veil": -11}, "về ngôi nhà": {"src": "anh/nen/ve-ngoi-nha.jpg", "avg": "#d9d0bc", "lo": [207, 194, 173], "hi": [225, 218, 199], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#342d1d"], ["nhạt theo nền", "#f3efe7"]], "ink": "#1c1814", "veil": 0}, "đừng hiểu": {"src": "anh/nen/dung-hieu.jpg", "avg": "#aaaf65", "lo": [166, 169, 97], "hi": [176, 181, 107], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#34361c"], ["nhạt theo nền", "#f3f3e7"]], "ink": "#1c1814", "veil": 0}, "mướp chín": {"src": "anh/nen/muop-chin.jpg", "avg": "#f4e8b8", "lo": [239, 215, 167], "hi": [246, 237, 188], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#473c0b"], ["nhạt theo nền", "#f3f1e7"]], "ink": "#1c1814", "veil": 0}, "lông tay": {"src": "anh/nen/long-tay.jpg", "avg": "#cbc8c3", "lo": [191, 188, 183], "hi": [211, 209, 205], "cands": [["trắng ngà", "#f7efe2"], ["đen mực", "#1c1814"], ["sẫm theo nền", "#2c2a26"], ["nhạt theo nền", "#f3efe7"]], "ink": "#1c1814", "veil": 0}};
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var BG = [['#121010', 'đen ấm'], ['#050807', 'nước sâu, như phòng hồ'], ['#16191f', 'xanh đêm'], ['#221d19', 'nâu khói']];
+  var INK = [['#f7efe2', 'trắng ngà'], ['#ffffff', 'trắng'], ['#d9cfbf', 'ngà xám'], ['#e8c9a0', 'vàng giấy cũ']];
+  var FONTS = [['HPT Tay', 'chữ tay'], ['Playfair Display', 'Playfair']];
+  var HAND = 'HPT Tay', HV = {"À":[1,2],"Á":[1,2],"Â":[1,2],"Ã":[1,2],"È":[1,2],"É":[1,2],"Ê":[1,2],"Ì":[1,2],"Í":[1,2],"Ò":[1,2],"Ó":[1,2],"Ô":[1,2],"Õ":[1,2],"Ù":[1,2],"Ú":[1,2],"Ý":[1,2],"à":[5,2],"á":[5,2],"â":[5,2],"ã":[5,2],"è":[5,2],"é":[5,2],"ê":[5,2],"ì":[5,2],"í":[5,2],"ò":[5,2],"ó":[5,2],"ô":[5,2],"õ":[5,2],"ù":[5,2],"ú":[5,2],"ý":[5,2],"Ă":[1,2],"ă":[5,2],"Ĩ":[1,2],"ĩ":[5,2],"Ũ":[1,2],"ũ":[5,2],"Ạ":[1,2],"ạ":[5,2],"Ả":[1,2],"ả":[5,2],"Ấ":[1,2],"ấ":[5,2],"Ầ":[1,2],"ầ":[5,2],"Ẩ":[1,2],"ẩ":[5,2],"Ẫ":[1,2],"ẫ":[5,2],"Ậ":[1,2],"ậ":[5,2],"Ắ":[1,2],"ắ":[5,2],"Ằ":[1,2],"ằ":[5,2],"Ẳ":[1,2],"ẳ":[5,2],"Ẵ":[1,2],"ẵ":[5,2],"Ặ":[1,2],"ặ":[5,2],"Ẹ":[1,2],"ẹ":[5,2],"Ẻ":[1,2],"ẻ":[5,2],"Ẽ":[1,2],"ẽ":[5,2],"Ế":[1,2],"ế":[5,2],"Ề":[1,2],"ề":[5,2],"Ể":[1,2],"ể":[5,2],"Ễ":[1,2],"ễ":[5,2],"Ệ":[1,2],"ệ":[5,2],"Ỉ":[1,2],"ỉ":[5,2],"Ị":[1,2],"ị":[5,2],"Ọ":[1,2],"ọ":[5,2],"Ỏ":[1,2],"ỏ":[5,2],"Ố":[1,2],"ố":[5,2],"Ồ":[1,2],"ồ":[5,2],"Ổ":[1,2],"ổ":[5,2],"Ỗ":[1,2],"ỗ":[5,2],"Ộ":[1,2],"ộ":[5,2],"Ớ":[1,2],"ớ":[5,2],"Ờ":[1,2],"ờ":[5,2],"Ở":[1,2],"ở":[5,2],"Ỡ":[1,2],"ỡ":[5,2],"Ợ":[1,2],"ợ":[5,2],"Ụ":[1,2],"ụ":[5,2],"Ủ":[1,2],"ủ":[5,2],"Ứ":[1,2],"ứ":[5,2],"Ừ":[1,2],"ừ":[5,2],"Ử":[1,2],"ử":[5,2],"Ữ":[1,2],"ữ":[5,2],"Ự":[1,2],"ự":[5,2],"Ỳ":[1,2],"ỳ":[5,2],"Ỵ":[1,2],"ỵ":[5,2],"Ỷ":[1,2],"ỷ":[5,2],"Ỹ":[1,2],"ỹ":[5,2],"!":[1,1],"(":[1,1],")":[1,1],"+":[1,1],",":[3,1],"-":[1,1],".":[3,1],"0":[1,1],"1":[1,1],"2":[1,1],"3":[1,1],"4":[1,1],"5":[1,1],"6":[1,1],"7":[1,1],"8":[1,1],"9":[1,1],":":[3,1],";":[1,1],"?":[1,1],"A":[1,1],"B":[1,1],"C":[1,1],"D":[1,1],"E":[1,1],"F":[1,1],"G":[1,1],"H":[1,1],"I":[1,1],"J":[1,1],"K":[1,1],"L":[1,1],"M":[1,1],"N":[1,1],"O":[1,1],"P":[1,1],"Q":[1,1],"R":[1,1],"S":[1,1],"T":[1,1],"U":[1,1],"V":[1,1],"W":[1,1],"X":[1,1],"Y":[1,1],"Z":[1,1],"a":[5,1],"b":[5,1],"c":[5,1],"ch":[5,1],"d":[5,1],"e":[5,1],"f":[5,1],"g":[5,1],"gh":[4,1],"gi":[5,1],"h":[5,1],"i":[5,1],"j":[5,1],"k":[5,1],"kh":[3,1],"l":[5,1],"m":[5,1],"n":[5,1],"ng":[5,1],"ngh":[5,1],"nh":[5,1],"o":[5,1],"p":[6,1],"ph":[5,1],"q":[6,1],"qu":[5,1],"r":[6,1],"s":[6,1],"t":[6,1],"th":[5,1],"tr":[5,1],"u":[5,1],"v":[6,1],"w":[5,1],"x":[5,1],"y":[5,1],"z":[5,1],"×":[1,1],"Đ":[1,1],"đ":[5,1],"Ơ":[1,1],"ơ":[5,1],"Ư":[1,1],"ư":[5,1],"—":[1,1],"‘":[1,1],"’":[1,1],"“":[1,1],"”":[1,1],"…":[1,1]};   /* chữ -> [số bản chữ, số bản dấu] */
+  var DIG = ['ngh', 'ch', 'gh', 'gi', 'kh', 'ng', 'nh', 'ph', 'qu', 'th', 'tr'];   /* âm ghép, cụm dài xét trước */
+  var HP = {"ì":{"f":[5,2]},"í":{"f":[5,2]},"ò":{"f":[6,2]},"ó":{"f":[6,2]},"ô":{"f":[6,2]},"õ":{"f":[6,2]},"ù":{"f":[6,2]},"ú":{"f":[6,2]},"ý":{"f":[6,2]},"ĩ":{"f":[5,2]},"ũ":{"f":[6,2]},"ỉ":{"f":[5,2]},"ị":{"f":[5,2]},"ọ":{"f":[6,2]},"ỏ":{"f":[6,2]},"ố":{"f":[6,2]},"ồ":{"f":[6,2]},"ổ":{"f":[6,2]},"ỗ":{"f":[6,2]},"ộ":{"f":[6,2]},"ớ":{"f":[6,2]},"ờ":{"f":[6,2]},"ở":{"f":[6,2]},"ỡ":{"f":[6,2]},"ợ":{"f":[6,2]},"ụ":{"f":[6,2]},"ủ":{"f":[6,2]},"ứ":{"f":[5,2]},"ừ":{"f":[5,2]},"ử":{"f":[5,2]},"ữ":{"f":[5,2]},"ự":{"f":[5,2]},"ỳ":{"f":[6,2]},"ỵ":{"f":[6,2]},"ỷ":{"f":[6,2]},"ỹ":{"f":[6,2]},"c":{"f":[5,1]},"ch":{"f":[4,1]},"i":{"f":[5,1]},"m":{"f":[5,1]},"n":{"f":[6,1]},"ng":{"f":[5,1]},"nh":{"f":[5,1]},"o":{"f":[6,1]},"p":{"f":[5,1]},"t":{"f":[5,1]},"u":{"f":[6,1]},"y":{"f":[6,1]},"ơ":{"f":[6,1]},"ư":{"f":[5,1]}};   /* dạng cuối từ Nguyên viết riêng (đuôi dài): chữ -> {f: [số bản, số bản dấu]} */
+  var LETTER = /[A-Za-z\u00C0-\u024F\u1E00-\u1EFF]/, UP = /[A-Z]/;
+  var PBG = [['texture', 'chất liệu'], ['solid', 'một màu']];
+  var GMOVE = [['still', 'đứng yên'], ['move', 'chuyển động']];
+  var DEF = { bg: '#121010', ink: '#f7efe2', text: 100, wave: 100, glide: 100, gap: 1.5, frame: 100, font: 'HPT Tay', psize: 100, pbg: 'texture', bright: 24, grain: 16, gsize: 1.3, gmove: 'still', glow: 49, glowTime: 6, gop: 50, gspeed: 100, gscale: 100, lh: {} };   /* lựa chọn của Nguyên, 9/10/2026, dùng chung cho điện thoại và máy tính */
+  var S = Object.assign({}, DEF);
+  try {
+    var saved = JSON.parse(localStorage.getItem('hpt-reel4') || 'null');
+    if (!saved) {      /* lần đầu có chữ tay: giữ các lựa chọn cũ, chỉ đổi phông và bỏ giãn dòng đã chỉnh theo phông cũ */
+      saved = JSON.parse(localStorage.getItem('hpt-reel3') || 'null');
+      if (saved) { delete saved.font; delete saved.lh; }
+    }
+    if (saved) S = Object.assign(S, saved);
+  } catch (e) {}
+  if (S.pbg !== 'solid' && S.pbg !== 'texture') S.pbg = 'texture';
+  if (!S.tex1) { S.pbg = 'texture'; S.tex1 = 1; }   /* lần đầu có nền chất liệu: chuyển sang nền chất liệu, các lựa chọn khác giữ nguyên */
+  function save() { try { localStorage.setItem('hpt-reel4', JSON.stringify(S)); } catch (e) {} }
+
+  /* bốc bản viết cho từng chữ: theo tên bài nên lần nào mở cũng ra đúng như vậy */
+  function seedOf(t) { var h = 2166136261; for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function rng(seed) {
+    var a = seed | 0;
+    return function () { a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  function setText(el, text, r) {
+    if (S.font !== HAND || !r) { el.textContent = text; return; }
+    text = text.normalize ? text.normalize('NFC') : text;
+    var frag = document.createDocumentFragment(), run = '';
+    for (var i = 0; i < text.length; ) {
+      /* chữ viết tắt toàn chữ hoa (từ hai chữ trở lên, như LGBTQIA): dùng chữ in hoa Nguyên viết riêng.
+         Vẫn bốc số như cũ cho từng chữ để các chữ phía sau trong bài giữ nguyên bản viết đã bốc */
+      if (UP.test(text.charAt(i)) && (UP.test(text.charAt(i + 1)) || (i > 0 && UP.test(text.charAt(i - 1))))) {
+        var j = i;
+        while (j < text.length && UP.test(text.charAt(j))) { if (HV[text.charAt(j)]) { r(); r(); } j++; }
+        if (run) { frag.appendChild(document.createTextNode(run)); run = ''; }
+        var ps = document.createElement('span'); ps.className = 'pr'; ps.textContent = text.slice(i, j); frag.appendChild(ps);
+        i = j; continue;
+      }
+      /* âm ghép (ch, ng, ngh, th...) Nguyên viết liền: giữ cả cụm trong một khúc chữ để font ghép thành một nét, bốc chung một bản */
+      var ch = text.charAt(i);
+      for (var d = 0; d < DIG.length; d++) if (text.substr(i, DIG[d].length) === DIG[d]) { ch = DIG[d]; break; }
+      var before = i > 0 && LETTER.test(text.charAt(i - 1));
+      i += ch.length;
+      var after = i < text.length && LETTER.test(text.charAt(i));
+      /* chữ đứng cuối từ dùng dạng riêng: đuôi dài kéo bay */
+      var pv = before && !after && HP[ch] && HP[ch].f;
+      var v = pv || HV[ch], f = 0, cls = '';
+      if (v) {
+        var bi = Math.floor(r() * v[0]), mj = Math.floor(r() * v[1]);
+        if (pv) cls = 'c' + (20 + bi + 6 * mj);
+        else { f = bi + 6 * mj; if (f) cls = 'f' + f; }
+      }
+      if (!cls) { run += ch; continue; }
+      if (run) { frag.appendChild(document.createTextNode(run)); run = ''; }
+      var sp = document.createElement('span'); sp.className = cls; sp.textContent = ch; frag.appendChild(sp);
+    }
+    if (run) frag.appendChild(document.createTextNode(run));
+    el.textContent = ''; el.appendChild(frag);
+  }
+  var KEYS = ['text', 'wave', 'glide', 'gap', 'frame', 'psize', 'bright', 'grain', 'gsize', 'glow', 'glowTime'];
+  var tune = document.getElementById('tune'), panel = document.getElementById('panel');
+  tune.addEventListener('click', function () { panel.hidden = !panel.hidden; tune.setAttribute('aria-expanded', String(!panel.hidden)); });
+  KEYS.forEach(function (k) { document.getElementById(k).addEventListener('input', function (e) { S[k] = +e.target.value; applyUI(); }); });
+  function swatches(boxId, pickId, list, key) {
+    var box = document.getElementById(boxId), pick = document.getElementById(pickId);
+    list.forEach(function (c) {
+      var b = document.createElement('button'); b.type = 'button'; b.style.background = c[0];
+      b.title = c[1]; b.setAttribute('aria-label', c[1]); b.dataset.c = c[0];
+      b.addEventListener('click', function () { S[key] = c[0]; applyUI(); });
+      box.insertBefore(b, pick);
+    });
+    pick.addEventListener('input', function (e) { S[key] = e.target.value; applyUI(); });
+  }
+  function segs(boxId, list, key) {
+    var box = document.getElementById(boxId);
+    list.forEach(function (c) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = c[1]; b.dataset.c = c[0];
+      b.addEventListener('click', function () { S[key] = c[0]; applyUI(); });
+      box.appendChild(b);
+    });
+  }
+  swatches('bgSw', 'bgPick', BG, 'bg');
+  swatches('inkSw', 'inkPick', INK, 'ink');
+  segs('fontSeg', FONTS, 'font');
+  segs('pbgSeg', PBG, 'pbg');
+  segs('gmoveSeg', GMOVE, 'gmove');
+  document.getElementById('reset').addEventListener('click', function () { S = Object.assign({}, DEF, { lh: {} }); applyUI(); });
+  /* giãn dòng: lưu riêng cho từng bài */
+  document.getElementById('plh').addEventListener('input', function (e) {
+    if (openIdx < 0) return;
+    S.lh = S.lh || {}; S.lh[frames[openIdx].poem.title] = +e.target.value;
+    applyLh(); save();
+  });
+  function rgb(hex) { var n = parseInt(hex.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; }
+  function applyUI() {
+    KEYS.forEach(function (k) { document.getElementById(k).value = S[k]; });
+    KEYS.forEach(function (k) { document.getElementById(k + 'Out').textContent = S[k] + (k === 'glowTime' ? ' giây' : k === 'gsize' ? '' : '%'); });
+    document.getElementById('bgPick').value = S.bg; document.getElementById('inkPick').value = S.ink;
+    [['bgSw', 'bg'], ['inkSw', 'ink'], ['fontSeg', 'font'], ['pbgSeg', 'pbg'], ['gmoveSeg', 'gmove']].forEach(function (g) {
+      document.querySelectorAll('#' + g[0] + ' button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.c === S[g[1]])); });
+    });
+    var root = document.documentElement.style;
+    root.setProperty('--bg', S.bg); root.setProperty('--ink', S.ink); root.setProperty('--cap', S.text / 100);
+    root.setProperty('--poem-font', "'" + S.font + "'");
+    var wasHand = document.documentElement.classList.contains('hand');
+    document.documentElement.classList.toggle('hand', S.font === HAND);
+    if (wasHand !== (S.font === HAND)) {      /* đổi phông: dựng lại chữ đang hiện cho đúng bản viết */
+      if (typeof frames !== 'undefined' && shown >= 0) setText(cap, frames[shown].poem.title, rng(seedOf(frames[shown].poem.title)));
+      if (typeof frames !== 'undefined' && openIdx >= 0) fillText(frames[openIdx].poem);
+    }
+    root.setProperty('--glow', S.glow / 100); root.setProperty('--glow-time', S.glowTime + 's');
+    document.getElementById('pGallery').style.setProperty('--g-op', S.gop / 100);
+    var gr = document.getElementById('pGrain');
+    gr.style.setProperty('--grain', S.grain / 100); gr.classList.toggle('moving', S.gmove === 'move');
+    /* cỡ hạt tính theo điểm ảnh thật của màn hình: 1 là mịn nhất (mỗi hạt một điểm ảnh) */
+    var tile = 320 * S.gsize / (window.devicePixelRatio || 1);
+    gr.style.backgroundSize = tile.toFixed(2) + 'px ' + tile.toFixed(2) + 'px';
+    save(); layout();
+    if (openIdx >= 0) { setPoemBg(frames[openIdx].poem); fitPoem(); applyLh(); if (galOn) { layoutGallery(); updateGallery(1, true); } }
+    else { document.getElementById('plh').disabled = true; document.getElementById('plhOut').textContent = '–'; }
+    if (document.fonts && document.fonts.load) document.fonts.load('400 20px "' + S.font + '"').then(fitPoem, function () {});
+  }
+
+  /* ---------- WebGL ---------- */
+  var canvas = document.getElementById('reel');
+  var opts = { antialias: true, alpha: false, premultipliedAlpha: false };
+  var gl = canvas.getContext('webgl2', opts), gl2 = !!gl;
+  if (!gl) gl = canvas.getContext('webgl', opts);
+  if (!gl) { document.getElementById('note').textContent = 'Máy này không chạy được WebGL.'; return; }
+
+  /* Mỗi khung là một tấm lưới 64×16 ô. Khi cuộn nhanh, mỗi điểm trên dải phim dịch lên xuống và ra vào
+     theo sóng sin dọc chiều ngang, biên độ tỉ lệ với tốc độ cuộn, và hơi xoắn quanh trục ngang.
+     Bước sóng bằng 1,82 khung, như inspo. */
+  var VS = [
+    'attribute vec2 a_pos;',
+    'uniform mat4 u_proj;',
+    'uniform vec2 u_size;',
+    'uniform float u_x;',
+    'uniform float u_vel;',
+    'uniform float u_freq;',
+    'varying vec2 v_uv;',
+    'varying float v_shade;',
+    'void main() {',
+    '  vec3 p = vec3(a_pos * u_size, 0.0);',
+    '  p.x += u_x;',
+    '  float ph = p.x * u_freq;',
+    '  float s = sin(ph); float c = cos(ph);',
+    '  float h = u_size.y;',
+    '  p += vec3(s * c * u_vel * -0.05, s * u_vel * 0.8 * h, c * u_vel * 0.8 * h + (a_pos.y * h) * s * u_vel * 0.2 * h);',
+    '  v_uv = a_pos + 0.5;',
+    '  v_shade = clamp(c * u_vel * 0.05, 0.0, 0.06);',
+    '  gl_Position = u_proj * vec4(p.x, p.y, p.z - 5.0, 1.0);',
+    '}'
+  ].join('\n');
+  /* u_ph: màu tạm khi ảnh chưa tải xong, nhích sáng hơn màu nền một chút */
+  var FS = [
+    'precision mediump float;',
+    'varying vec2 v_uv;',
+    'varying float v_shade;',
+    'uniform sampler2D u_tex;',
+    'uniform float u_ready;',
+    'uniform vec3 u_ph;',
+    'void main() {',
+    '  vec3 col = mix(u_ph, texture2D(u_tex, v_uv).rgb, u_ready);',
+    '  gl_FragColor = vec4(col + v_shade, 1.0);',
+    '}'
+  ].join('\n');
+  function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+
+  /* lưới 64×16 ô, tọa độ từ -0.5 đến 0.5 */
+  var NX = 64, NY = 16, verts = [], idx = [];
+  for (var j = 0; j <= NY; j++) for (var i = 0; i <= NX; i++) verts.push(i / NX - 0.5, j / NY - 0.5);
+  for (j = 0; j < NY; j++) for (i = 0; i < NX; i++) { var a = j * (NX + 1) + i, b = a + 1, c = a + NX + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
+
+  /* ảnh của từng bài */
+  var frames = POEMS.map(function (p) {
+    var f = { poem: p, tex: null, ready: 0, im: new Image() };
+    f.im.onload = function () { if (!gl.isContextLost()) upload(f); };
+    f.im.src = p.src;
+    return f;
+  });
+  function upload(f) {
+    gl.bindTexture(gl.TEXTURE_2D, f.tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, f.im);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    if (gl2) { gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); }
+    else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    f.ready = 1;
+  }
+
+  /* dựng mọi thứ trên card đồ họa; gọi lại được khi máy trả lại WebGL sau khi lấy mất */
+  var prog, U = {};
+  function setupGL() {
+    prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+    gl.useProgram(prog);
+    U = {}; ['u_proj', 'u_size', 'u_x', 'u_vel', 'u_freq', 'u_tex', 'u_ready', 'u_ph'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+    var vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    var ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(idx), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'a_pos'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    gl.enable(gl.DEPTH_TEST);
+    frames.forEach(function (f) {
+      f.tex = gl.createTexture(); f.ready = 0;
+      gl.bindTexture(gl.TEXTURE_2D, f.tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([40, 36, 33, 255]));
+      if (f.im.complete && f.im.naturalWidth) upload(f);
+    });
+  }
+  setupGL();
+  function rlog(m) { if (window.HPT_LOG) window.HPT_LOG(m); else if (window.console) console.warn(m); }
+  canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); rlog('cuộn phim: máy lấy mất WebGL'); }, false);
+  canvas.addEventListener('webglcontextrestored', function () {
+    try { setupGL(); layout(); rlog('cuộn phim: WebGL trở lại'); } catch (err) { rlog('cuộn phim: không dựng lại được (' + err.message + ')'); }
+  }, false);
+
+  /* ---------- kích thước: giống inspo, khung chiếm 40% chiều cao (35% trên điện thoại) ---------- */
+  var A = 1.5, FOV = 48 * Math.PI / 180;
+  var L = {};
+  function layout() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    /* trong trang ghép, lúc người đọc chưa ở phòng thơ thì canvas thu về 1 điểm ảnh: nhường bộ nhớ đồ họa cho trang chủ và phòng hồ */
+    var away = window.HPT_SITE && !window.HPT_SITE.inRoom();
+    canvas.width = away ? 1 : Math.round(w * dpr); canvas.height = away ? 1 : Math.round(h * dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    var bg = rgb(S.bg), ink = rgb(S.ink);
+    gl.clearColor(bg[0], bg[1], bg[2], 1);
+    gl.uniform3f(U.u_ph, bg[0] + (ink[0] - bg[0]) * 0.08, bg[1] + (ink[1] - bg[1]) * 0.08, bg[2] + (ink[2] - bg[2]) * 0.08);
+    var aspect = w / h, mobile = aspect < 1.1;
+    var worldH = 2 * 5 * Math.tan(FOV / 2), worldW = worldH * aspect;
+    var fw = Math.min(worldH * (mobile ? 0.35 : 0.4) * A, worldW * (mobile ? 0.7 : 0.42)) * S.frame / 100;
+    var fh = fw / A, spacing = fw * (1 + S.gap / 100);
+    var f = 1 / Math.tan(FOV / 2), n = 0.1, fa = 100;
+    var proj = new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (fa + n) / (n - fa), -1, 0, 0, 2 * fa * n / (n - fa), 0]);
+    gl.uniformMatrix4fv(U.u_proj, false, proj);
+    gl.uniform2f(U.u_size, fw, fh);
+    gl.uniform1f(U.u_freq, 2 * Math.PI / (1.82 * spacing));
+    L = { w: w, h: h, worldW: worldW, worldH: worldH, fw: fw, fh: fh, spacing: spacing, total: spacing * frames.length,
+          pxPerFrame: 0.6 * h };      /* như inspo: mỗi khung ứng với 60% chiều cao màn hình cuộn */
+  }
+
+  /* ---------- cuộn có quán tính (cách làm của Lenis: đuổi theo đích với hệ số 0,08 mỗi khung hình) ---------- */
+  var target = 0, current = 0, wave = 0, prevCurrent = 0, dragging = null;
+  var mode = 'reel', openIdx = -1, hideIdx = -1;     /* mode: reel | opening | poem | closing */
+  function wrapX(x) { var b = L.total, s = b / 2; return ((x + s) % b + b) % b - s; }
+  function frameAtCenter() { var i = Math.round(current / L.pxPerFrame); var n = frames.length; return ((i % n) + n) % n; }
+  function scrollToFrame(i) {
+    var n = frames.length, cur = Math.round(target / L.pxPerFrame), k = ((cur % n) + n) % n;
+    var d = i - k; if (d > n / 2) d -= n; if (d < -n / 2) d += n;
+    target = (cur + d) * L.pxPerFrame;
+  }
+  function settled() { return Math.abs(target - current) < 2 && Math.abs(wave) < 0.02; }
+
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (mode !== 'reel') return;
+    var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (e.deltaMode === 1) d *= 40; else if (e.deltaMode === 2) d *= L.h;
+    target += d;
+  }, { passive: false });
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (mode !== 'reel') return;
+    dragging = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now(), v: 0, axis: null, moved: 0 };
+    canvas.setPointerCapture(e.pointerId);
+    canvas.classList.add('dragging');
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!dragging || e.pointerId !== dragging.id) return;
+    var dx = e.clientX - dragging.x, dy = e.clientY - dragging.y, now = performance.now();
+    if (!dragging.axis && Math.abs(e.clientX - dragging.sx) + Math.abs(e.clientY - dragging.sy) > 6)
+      dragging.axis = Math.abs(e.clientX - dragging.sx) >= Math.abs(e.clientY - dragging.sy) ? 'x' : 'y';
+    var d = dragging.axis === 'y' ? -dy : -dx;
+    var mult = e.pointerType === 'mouse' ? 1 : 1.5;        /* inspo: ngón tay đẩy mạnh hơn 1,5 lần */
+    target += d * mult;
+    var dt = Math.max(1, now - dragging.t);
+    dragging.v = dragging.v * 0.6 + (d * mult / dt) * 0.4;  /* px mỗi ms */
+    dragging.moved += Math.abs(dx) + Math.abs(dy);
+    dragging.x = e.clientX; dragging.y = e.clientY; dragging.t = now;
+  });
+  function endDrag(e) {
+    if (!dragging || e.pointerId !== dragging.id) return;
+    var tap = dragging.moved < 8;
+    if (!tap) target += dragging.v * 260;                    /* thả tay thì còn trôi thêm một đoạn */
+    else tapAt(e.clientX, e.clientY);
+    dragging = null; canvas.classList.remove('dragging');
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('keydown', function (e) {
+    if (mode !== 'reel') return;
+    var k = frameAtCenter();
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { scrollToFrame((k + 1) % frames.length); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { scrollToFrame((k - 1 + frames.length) % frames.length); e.preventDefault(); }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (settled()) openPoem(k); else scrollToFrame(k); }
   });
 
-  var hash = window.location.hash.replace('#', '');
-  if (hash && document.getElementById(hash)) {
-    document.getElementById('homepage').classList.add('hidden');
-    openPoem(hash);
+  /* bấm vào khung: khung bên cạnh thì đưa vào giữa; khung đang ở giữa (đã đứng yên) thì mở bài */
+  function tapAt(sx, sy) {
+    var wx = (sx / L.w - 0.5) * L.worldW, wy = -(sy / L.h - 0.5) * L.worldH;
+    if (Math.abs(wy) > L.fh / 2) return;
+    var off = current / L.pxPerFrame * L.spacing;
+    for (var i = 0; i < frames.length; i++) {
+      var x = wrapX(i * L.spacing - off);
+      if (Math.abs(wx - x) < L.fw / 2) {
+        if (i === frameAtCenter() && Math.abs(x) < L.fw * 0.2 && settled()) openPoem(i);
+        else scrollToFrame(i);
+        return;
+      }
+    }
   }
 
+  /* ---------- tên bài ở giữa (không hiện ngày tháng) ---------- */
+  var cap = document.getElementById('caption'), shown = -1, capTimer = null;
+  function updateCaption() {
+    var k = frameAtCenter();
+    cap.classList.toggle('moving', Math.abs(target - current) > 0.3 * L.pxPerFrame || Math.abs(wave) > 0.12);
+    if (k === shown) return;
+    shown = k;
+    cap.classList.add('fading');
+    clearTimeout(capTimer);
+    capTimer = setTimeout(function () {
+      setText(cap, frames[k].poem.title, rng(seedOf(frames[k].poem.title)));
+      cap.classList.remove('fading');
+    }, reduce ? 0 : 220);
+  }
 
-  </script>
+  /* ---------- trang bài thơ ---------- */
+  var poemEl = document.getElementById('poem'), pInner = document.getElementById('pInner'), scroller = document.getElementById('pScroll');
+  var pBg = document.getElementById('pBg'), pDim = document.getElementById('pDim');
+  /* khung ngoài không bao giờ được cuộn (trình duyệt có thể tự cuộn nó khi đưa một nút vào tầm nhìn), nếu không các lớp nền sẽ lệch */
+  poemEl.addEventListener('scroll', function () { if (poemEl.scrollTop || poemEl.scrollLeft) { poemEl.scrollTop = 0; poemEl.scrollLeft = 0; } });
+  var pBody = document.getElementById('pBody'), pEnd = document.getElementById('pEnd'), pEndImg = document.getElementById('pEndImg');
+  var fly = document.getElementById('fly');
 
-</body>
+  var pGrainEl = document.getElementById('pGrain');
+  (function makeGrain() {
+    var c = document.createElement('canvas'); c.width = c.height = 320;
+    var x = c.getContext('2d'), im = x.createImageData(320, 320), dd = im.data;
+    /* mỗi điểm là một hạt sáng (trắng) hoặc tối (đen) với độ trong khác nhau; không dùng chế độ hòa trộn để chạy ổn trên mọi máy */
+    for (var i = 0; i < dd.length; i += 4) {
+      var n = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+      var v = n > 0 ? 255 : 0, a = Math.min(255, Math.abs(n) * 200) | 0;
+      dd[i] = dd[i + 1] = dd[i + 2] = v; dd[i + 3] = a;
+    }
+    x.putImageData(im, 0, 0);
+    pGrainEl.style.backgroundImage = 'url(' + c.toDataURL() + ')';
+  })();
+  function setPoemBg(p) {
+    var tx = texOf(p);
+    document.documentElement.style.setProperty('--poem-bg', tx ? tx.avg : p.bg);
+    poemEl.classList.toggle('solid', S.pbg === 'solid');
+    poemEl.classList.toggle('texture', !!tx);
+    pBg.style.backgroundImage = tx ? 'url("' + tx.src + '")' : 'none';
+    /* độ sáng nền: điểm sáng thứ 90/100 của ảnh nhòe được hạ xuống mức đã chọn */
+    var m = Math.min(1, (S.bright / 100) / Math.max(0.01, p.lum));
+    pDim.style.setProperty('--dim', (1 - m).toFixed(3));
+    applyInk(p);
+  }
+
+  /* ---------- nền chất liệu và màu chữ của từng bài ----------
+     Mỗi bài một ảnh chất liệu, màu chữ riêng. Trong bảng "chỉnh" có vài màu gợi ý; mỗi màu ghi độ dễ đọc (tỉ lệ tương
+     phản), tính theo chỗ sáng nhất của nền với chữ sáng, chỗ tối nhất với chữ tối, không tính theo màu trung bình.
+     4,5 trở lên là dễ đọc, 7 trở lên là rất dễ đọc. Thanh "nền tối / sáng" phủ một lớp đen (số âm) hoặc trắng (số dương). */
+  function texOf(p) { return (S.pbg === 'texture' && p && TEX[p.title]) || null; }
+  function lumOf(c) {
+    function ch(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+    return 0.2126 * ch(c[0]) + 0.7152 * ch(c[1]) + 0.0722 * ch(c[2]);
+  }
+  function hexRgb(h) { var n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function veiled(c, v) { var a = Math.abs(v) / 100, t = v < 0 ? 0 : 255; return [c[0] + (t - c[0]) * a, c[1] + (t - c[1]) * a, c[2] + (t - c[2]) * a]; }
+  function readable(ink, tx, v) {
+    var li = lumOf(hexRgb(ink)), lo = lumOf(veiled(tx.lo, v)), hi = lumOf(veiled(tx.hi, v));
+    var bg = li > (lo + hi) / 2 ? hi : lo;
+    return Math.round((Math.max(li, bg) + 0.05) / (Math.min(li, bg) + 0.05) * 10) / 10;   /* làm tròn một chữ số, để số và lời ghi luôn khớp nhau */
+  }
+  function readWord(r) { return r >= 7 ? 'rất dễ đọc' : r >= 4.5 ? 'dễ đọc' : r >= 3 ? 'hơi khó đọc' : 'khó đọc'; }
+  function fmtR(r) { return r.toFixed(1).replace('.', ','); }
+  function inkOf(p, tx) { return (S.pink && S.pink[p.title]) || tx.ink; }
+  function veilOf(p, tx) { var v = S.pveil && S.pveil[p.title]; return v === undefined ? tx.veil : v; }
+  function inkStyles(p) {
+    var tx = texOf(p), root = document.documentElement.style;
+    if (!tx) { poemEl.style.color = ''; poemEl.style.removeProperty('--poem-shadow'); pDim.style.removeProperty('--veil'); root.removeProperty('--ink-now'); return null; }
+    var ink = inkOf(p, tx), v = veilOf(p, tx), light = lumOf(hexRgb(ink)) > 0.4;
+    poemEl.style.color = ink;
+    poemEl.style.setProperty('--poem-shadow', light ? '0 0 12px rgba(0, 0, 0, .35)' : '0 0 12px rgba(255, 255, 255, .3)');
+    pDim.style.setProperty('--veil', v < 0 ? 'rgba(0, 0, 0, ' + (-v / 100) + ')' : 'rgba(255, 255, 255, ' + (v / 100) + ')');
+    root.setProperty('--ink-now', ink);
+    return tx;
+  }
+  var inkBox = document.getElementById('inkBox'), inkList = document.getElementById('inkList');
+  var pveil = document.getElementById('pveil'), pveilOut = document.getElementById('pveilOut');
+  function syncInkUI(p, tx) {
+    inkBox.classList.toggle('off', !tx);
+    inkList.textContent = '';
+    if (!tx) { pveilOut.textContent = '–'; return; }
+    var ink = inkOf(p, tx).toLowerCase(), v = veilOf(p, tx);
+    pveil.value = v; pveilOut.textContent = (v > 0 ? '+' : '') + v + '%';
+    var custom = !tx.cands.some(function (c) { return c[1] === ink; });
+    tx.cands.forEach(function (c) {
+      var b = document.createElement('button'), r = readable(c[1], tx, v);
+      b.type = 'button'; b.className = 'ink-row';
+      b.innerHTML = '<span class="ink-sw"></span><span></span><span class="ink-ok"></span>';
+      b.children[0].style.background = c[1]; b.children[1].textContent = c[0]; b.children[2].textContent = fmtR(r) + ' · ' + readWord(r);
+      b.setAttribute('aria-pressed', String(c[1] === ink));
+      b.addEventListener('click', function () { setInk(p, c[1], false); });
+      inkList.appendChild(b);
+    });
+    var row = document.createElement('label'), rc = readable(ink, tx, v);
+    row.className = 'ink-row';
+    row.innerHTML = '<input type="color" aria-label="Tự chọn màu chữ"><span>tự chọn</span><span class="ink-ok"></span>';
+    row.children[0].value = ink; row.children[2].textContent = custom ? fmtR(rc) + ' · ' + readWord(rc) : '';
+    if (custom) row.children[1].textContent = 'tự chọn ' + ink;    /* mã màu hiện ra để gửi lại được */
+    row.setAttribute('aria-pressed', String(custom));
+    row.children[0].addEventListener('input', function (e) { setInk(p, e.target.value, true); });
+    row.children[0].addEventListener('change', function (e) { setInk(p, e.target.value, false); });
+    inkList.appendChild(row);
+  }
+  function setInk(p, c, live) {
+    S.pink = S.pink || {}; S.pink[p.title] = c.toLowerCase(); save();
+    var tx = inkStyles(p);
+    if (!tx) return;
+    if (!live) { syncInkUI(p, tx); return; }
+    /* đang kéo trong ô chọn màu: chỉ cập nhật số, không dựng lại danh sách (dựng lại sẽ đóng ô chọn màu) */
+    var rows = inkList.children, r = readable(c, tx, veilOf(p, tx));
+    for (var k = 0; k < rows.length; k++) rows[k].setAttribute('aria-pressed', String(k === rows.length - 1));
+    rows[rows.length - 1].children[2].textContent = fmtR(r) + ' · ' + readWord(r);
+    rows[rows.length - 1].children[1].textContent = 'tự chọn ' + c.toLowerCase();
+  }
+  function applyInk(p) { syncInkUI(p, inkStyles(p)); }
+  function inkOff() { document.documentElement.style.removeProperty('--ink-now'); syncInkUI(null, null); }
+  pveil.addEventListener('input', function () {
+    if (openIdx < 0) return;
+    var p = frames[openIdx].poem;
+    S.pveil = S.pveil || {}; S.pveil[p.title] = +pveil.value; save(); applyInk(p);
+  });
+  document.getElementById('inkReset').addEventListener('click', function () {
+    if (openIdx < 0) return;
+    var p = frames[openIdx].poem;
+    if (S.pink) delete S.pink[p.title];
+    if (S.pveil) delete S.pveil[p.title];
+    save(); applyInk(p);
+  });
+  function fillText(p) {
+    var r = rng(seedOf(p.title));           /* tên bài bốc trước, trùng với tên bài dưới cuộn phim */
+    setText(document.getElementById('pTitle'), p.title, r);
+    pBody.textContent = '';
+    var ink = p.design && p.design.ink;
+    if (ink) {
+      var d = document.createElement('div'); d.className = 'ink-poem'; d.setAttribute('role', 'img');
+      d.setAttribute('aria-label', p.stanzas.map(function (st) { return st.join(' / '); }).join(' // '));
+      d.style.setProperty('--ink-src', 'url("' + ink.src + '")'); d.style.width = ink.em + 'em'; d.style.aspectRatio = String(ink.r);
+      pBody.appendChild(d);
+      setText(document.getElementById('pDate'), p.date, r);
+      return;
+    }
+    p.stanzas.forEach(function (st) {
+      var el = document.createElement('p'); el.className = 'st';
+      st.forEach(function (line) {
+        var s = document.createElement('span'); s.className = 'l';
+        /* dòng bắt đầu bằng khoảng trắng (đoạn xuống dòng bậc thang): bỏ khoảng trắng, thụt vào bằng lề trái để chữ không bị đẩy sang dòng mới */
+        var m = /^ {2,}/.exec(line);
+        if (m) { s.className = 'l stair'; s.dataset.n = m[0].length; line = line.slice(m[0].length); }
+        setText(s, line, r); el.appendChild(s);
+      });
+      pBody.appendChild(el);
+    });
+    setText(document.getElementById('pDate'), p.date, r);
+  }
+  function fillPoem(p) {
+    pInner.style.lineHeight = lhFor(p);
+    fillText(p);
+    pEndImg.src = p.src;
+    setPoemBg(p);
+  }
+
+  /* Cỡ chữ: điện thoại khoảng 16px, máy tính khoảng 21px. Nếu thu nhỏ tối đa 12% mà 9/10 số dòng
+     vừa một hàng thì thu nhỏ; dòng còn lại quá dài thì xuống dòng thụt vào. */
+  var measureCtx = document.createElement('canvas').getContext('2d');
+  function fitPoem() {
+    if (openIdx < 0) return;
+    var w = window.innerWidth;
+    var base = Math.max(16, Math.min(21, 14.4 + w * 0.0045)) * S.psize / 100;
+    measureCtx.font = '400 ' + base + 'px "' + S.font + '", Georgia, serif';
+    var widths = [];
+    var fp = frames[openIdx].poem;
+    if (!(fp.design && fp.design.ink)) fp.stanzas.forEach(function (st) { st.forEach(function (l) { if (!/^ {2,}/.test(l)) widths.push(measureCtx.measureText(l).width); }); });   /* bài viết tay nguyên trang: không đo dòng */   /* dòng bậc thang tự co khoảng thụt, không tính */
+    widths.sort(function (a, b) { return a - b; });
+    var w90 = widths[Math.min(widths.length - 1, Math.floor(widths.length * 0.9))] || 1;
+    var col = Math.min(w - 44, 40 * base);
+    var size = base * Math.max(0.88, Math.min(1, (col - 2) / w90));
+    pInner.style.setProperty('--poem-size', size.toFixed(2) + 'px');
+    if (window.__reelDebug) window.__reelDebug.fit = { base: base, size: size, col: col, w90: w90 };
+    layoutStairs(size, Math.min(w - 44, 40 * size));
+  }
+  /* Bậc thang: mỗi khoảng trắng đầu dòng thụt vào một khoảng bằng nhau (rộng nhất 0,26 chữ, như khoảng trắng của Playfair lúc bài được viết),
+     thu hẹp lại vừa đủ để chữ ở bậc sâu nhất vẫn nằm trọn trên dòng của nó */
+  function layoutStairs(fs, colW) {
+    var st = pBody.querySelectorAll('.stair');
+    if (!st.length) return;
+    var u = 0.26 * fs, rg = document.createRange();
+    for (var i = 0; i < st.length; i++) {
+      rg.selectNodeContents(st[i]);
+      var ww = rg.getBoundingClientRect().width, n = +st[i].dataset.n;
+      u = Math.min(u, (colW - ww - 4) / n);
+    }
+    u = Math.max(0, u);
+    for (var j = 0; j < st.length; j++) st[j].style.paddingLeft = (+st[j].dataset.n * u).toFixed(1) + 'px';
+  }
+
+  function lhFor(p) {   /* chữ tay giữ nguyên vòng trên, vòng dưới cao như Nguyên viết, nên giãn dòng rộng ra thay vì ép chữ ngắn lại (27/10) */
+    var d = p.design && p.design.lh;
+    return (S.lh && S.lh[p.title]) || (S.font === HAND ? Math.max(d || 0, 2.6) : d || 1.75);
+  }
+  function applyLh() {
+    if (openIdx < 0) return;
+    var v = lhFor(frames[openIdx].poem), el = document.getElementById('plh');
+    pInner.style.lineHeight = v; el.disabled = false; el.value = v; document.getElementById('plhOut').textContent = (+v).toFixed(2);
+  }
+
+  /* ---------- ảnh ẩn sau bài thơ ---------- */
+  var gal = document.getElementById('pGallery'), galItems = [], galOn = false, galSm = 0, galLoop = 1, galMaxH = 0;
+  var GAL_SPEED = [0.55, 0.8, 0.65, 0.9, 0.5, 0.75, 0.6, 0.85];     /* so với chữ: nhỏ hơn 1 là trôi chậm hơn, như nằm sâu hơn */
+  var GAL_X = [-24, 16, -18, 22, -26, 12, -14, 20];                 /* lệch trái phải, tính theo % bề ngang màn hình */
+  var GAL_W = [20, 14, 17, 15, 22, 13, 18, 16];                     /* bề ngang trên máy tính, % màn hình */
+  function buildGallery(p) {
+    gal.textContent = ''; galItems = [];
+    var g = p.design && p.design.gallery;
+    galOn = !!(g && g.length);
+    poemEl.classList.toggle('has-gallery', galOn);
+    if (!galOn) return;
+    g.forEach(function (it, i) {
+      var box = document.createElement('div'); box.className = 'g-item';
+      var im = document.createElement('img'); im.alt = ''; im.src = it.src; box.appendChild(im);
+      gal.appendChild(box);
+      galItems.push({ el: box, img: im, r: it.r, vis: false });
+    });
+    layoutGallery(); updateGallery(1, true);
+  }
+  function layoutGallery() {
+    var W = window.innerWidth, H = window.innerHeight, mobile = W / H < 1.1;
+    var gap = H * (mobile ? 0.1 : 0.14), acc = H * 0.32;
+    galMaxH = 0;
+    galItems.forEach(function (it, i) {
+      var w = Math.min(W * 0.62, W * GAL_W[i % GAL_W.length] * (mobile ? 2.3 : 1) / 100 * S.gscale / 100);
+      var h = w / it.r, x = W / 2 + GAL_X[i % GAL_X.length] * (mobile ? 0.75 : 1) / 100 * W - w / 2;
+      it.w = w; it.h = h; it.base = acc; it.speed = GAL_SPEED[i % GAL_SPEED.length];
+      acc += h + gap; galMaxH = Math.max(galMaxH, h);
+      it.el.style.width = w.toFixed(1) + 'px'; it.el.style.height = h.toFixed(1) + 'px'; it.el.style.left = x.toFixed(1) + 'px';
+    });
+    galLoop = Math.max(acc, H + galMaxH + gap);
+  }
+  /* ảnh đuổi theo chữ hơi trễ một chút (như inspo), nên khi dừng cuộn ảnh còn trôi thêm một đoạn ngắn */
+  function updateGallery(dt, snap) {
+    var s = scroller.scrollTop, H = window.innerHeight;
+    galSm = snap ? s : galSm + (s - galSm) * (1 - Math.exp(-dt * 6));
+    var k = reduce ? 0 : S.gspeed / 100;
+    galItems.forEach(function (it) {
+      var y = it.base - galSm * it.speed * k;
+      y = ((y + galMaxH) % galLoop + galLoop) % galLoop - galMaxH;
+      it.el.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)';
+      var pos = (y + it.h / 2) / H - 0.5;                                   /* -0,5 ở mép trên, 0,5 ở mép dưới */
+      it.img.style.transform = 'translate3d(0,' + (pos * -7).toFixed(2) + '%,0) scale(1.2)';
+      var vis = y < H && y + it.h > 0;
+      if (vis !== it.vis) { it.vis = vis; it.el.classList.toggle('in', vis); }
+    });
+  }
+
+  /* ảnh cuối bài hiện ra khi người đọc cuộn tới */
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (en) { if (en.isIntersecting && en.intersectionRatio > 0.35) pEnd.classList.add('shown'); });
+  }, { root: scroller, threshold: [0, 0.35, 0.6] }) : null;
+  if (io) io.observe(pEnd);
+
+  function frameRect(i) {
+    var pw = L.fw / L.worldW * L.w, ph = L.fh / L.worldH * L.h;
+    var x = wrapX(i * L.spacing - current / L.pxPerFrame * L.spacing);
+    var cx = L.w / 2 + x / L.worldW * L.w;
+    return { left: cx - pw / 2, top: L.h / 2 - ph / 2, width: pw, height: ph };
+  }
+  function place(el, r) { el.style.left = r.left + 'px'; el.style.top = r.top + 'px'; el.style.width = r.width + 'px'; el.style.height = r.height + 'px'; }
+  /* chạy một hiệu ứng rồi giữ lại trạng thái cuối bằng style thường, để các lần sau không bị chồng */
+  function anim(el, kf, o) {
+    return new Promise(function (res) {
+      var a = el.animate(kf, Object.assign({ fill: 'both' }, o));
+      a.onfinish = function () { var last = kf[kf.length - 1]; for (var k in last) if (k !== 'offset') el.style[k] = last[k]; a.cancel(); res(); };
+    });
+  }
+
+  function openPoem(i) {
+    if (mode !== 'reel') return;
+    mode = 'opening'; openIdx = i; hideIdx = i;
+    var p = frames[i].poem;
+    fillPoem(p);
+    pEnd.classList.remove('shown'); pEnd.style.visibility = '';
+    poemEl.style.opacity = '0'; pInner.style.opacity = '0';
+    poemEl.hidden = false; poemEl.scrollTop = 0; scroller.scrollTop = 0; fitPoem(); applyLh(); buildGallery(p);
+    fly.src = p.src; place(fly, frameRect(i)); fly.style.opacity = '1'; fly.style.transform = 'none'; fly.style.transformOrigin = '50% 50%'; fly.hidden = false;
+    canvas.classList.add('away'); cap.classList.add('away');
+    var D = reduce ? 250 : 1150;
+    anim(fly, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.7)', opacity: 0 }], { duration: D, easing: 'cubic-bezier(.22,.55,.3,1)' })
+      .then(function () { fly.hidden = true; });
+    anim(poemEl, [{ opacity: 0 }, { opacity: 1 }], { duration: D * 0.8, delay: D * 0.12, easing: 'ease' });
+    anim(pInner, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: reduce ? 200 : 1000, delay: D * 0.72, easing: 'ease-out' })
+      .then(function () { mode = 'poem'; scroller.focus({ preventScroll: true }); });
+  }
+
+  function closePoem(flyBack) {
+    if (mode !== 'poem') return;
+    mode = 'closing';
+    var i = openIdx, D = reduce ? 250 : 1050;
+    canvas.classList.remove('away');
+    var done;
+    if (flyBack) {
+      var a = pEndImg.getBoundingClientRect(), b = frameRect(i);
+      fly.src = frames[i].poem.src; place(fly, a); fly.style.opacity = '1'; fly.style.transformOrigin = '0 0'; fly.style.transform = 'none'; fly.hidden = false;
+      pEnd.style.visibility = 'hidden';
+      anim(pInner, [{ opacity: 1 }, { opacity: 0 }], { duration: 350, easing: 'ease' });
+      anim(poemEl, [{ opacity: 1 }, { opacity: 0 }], { duration: D * 0.8, delay: 120, easing: 'ease' });
+      done = anim(fly, [{ transform: 'none' },
+        { transform: 'translate(' + (b.left - a.left) + 'px,' + (b.top - a.top) + 'px) scale(' + (b.width / a.width) + ',' + (b.height / a.height) + ')' }],
+        { duration: D, easing: 'cubic-bezier(.55,0,.25,1)' });
+    } else {
+      hideIdx = -1;
+      done = anim(poemEl, [{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 200 : 700, easing: 'ease' });
+    }
+    done.then(function () {
+      hideIdx = -1; fly.hidden = true; poemEl.hidden = true; openIdx = -1; mode = 'reel'; galOn = false; gal.textContent = ''; galItems = [];
+      document.getElementById('plh').disabled = true; document.getElementById('plhOut').textContent = '–';
+      inkOff();
+      cap.classList.remove('away'); canvas.focus({ preventScroll: true });
+    });
+  }
+  pEnd.addEventListener('click', function () { closePoem(true); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mode === 'poem') closePoem(false); });
+  document.getElementById('back').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (mode === 'poem') { closePoem(false); return; }
+    if (mode !== 'reel') return;
+    if (window.HPT_SITE) { window.HPT_SITE.leaveRoom(); return; }
+    document.getElementById('note').textContent = 'Trên trang thật, nút này về trang chủ.'; panel.hidden = false; tune.setAttribute('aria-expanded', 'true');
+  });
+
+  /* ---------- vòng lặp ---------- */
+  var last = 0;
+  function frame(now) {
+    var dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60; last = now;
+    if (window.HPT_SITE && !window.HPT_SITE.inRoom()) { requestAnimationFrame(frame); return; }
+    if (galOn && openIdx >= 0) updateGallery(dt);
+    if (mode === 'poem') { requestAnimationFrame(frame); return; }   /* đang đọc thơ: cuộn phim nghỉ */
+    var k = 1 - Math.exp(-60 * (0.08 * 100 / S.glide) * dt);   /* hệ số đuổi: 0,08 mỗi khung hình như Lenis; trôi lâu hơn thì đuổi chậm hơn */
+    current += (target - current) * k;
+    if (Math.abs(target - current) < 0.01) current = target;
+    var vel = (current - prevCurrent) * (1 / 60) / dt;        /* px mỗi khung hình, quy về 60 hình/giây */
+    prevCurrent = current;
+    var waveTarget = Math.max(-1.6, Math.min(1.6, 0.011 * vel)) * (reduce ? 0 : S.wave / 100);
+    wave += (waveTarget - wave) * (1 - Math.pow(1 - 0.12, dt * 60));
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.uniform1f(U.u_vel, wave);
+    var off = current / L.pxPerFrame * L.spacing;
+    var half = L.worldW / 2 + L.fw;
+    for (var i = 0; i < frames.length; i++) {
+      if (i === hideIdx) continue;                          /* khung đang "bay" bằng ảnh rời thì không vẽ */
+      var x = wrapX(i * L.spacing - off);
+      if (Math.abs(x) > half + L.fh) continue;              /* khung nằm ngoài màn hình thì không vẽ */
+      gl.uniform1f(U.u_x, x);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, frames[i].tex);
+      gl.uniform1i(U.u_tex, 0); gl.uniform1f(U.u_ready, frames[i].ready);
+      gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
+    }
+    updateCaption();
+    requestAnimationFrame(frame);
+  }
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { layout(); fitPoem(); if (galOn) { layoutGallery(); updateGallery(1, true); } }, 100); });
+  applyUI();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitPoem);
+  if (!window.HPT_SITE) canvas.focus({ preventScroll: true });
+  window.HPT_ROOM = { enter: function () { layout(); canvas.focus({ preventScroll: true }); }, leave: function () { layout(); } };
+  requestAnimationFrame(frame);
+  if (/debug/.test(location.hash)) {
+    window.__reelDebug = {};
+    window.__reel = { get: function () { return { target: target, current: current, wave: wave, center: frameAtCenter(), L: L, mode: mode, open: openIdx, fit: window.__reelDebug.fit }; },
+                      push: function (d) { target += d; }, rect: function (i) { return frameRect(i); }, open: function (i) { scrollToFrame(i); current = target; openPoem(i); } };
+  }
+})();
+
+</script>
 </html>
