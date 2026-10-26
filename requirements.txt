@@ -1,0 +1,7 @@
+numpy==2.5.3
+opencv-python-headless==5.0.0.93
+scikit-image==0.26.0
+fonttools==4.65.0
+brotli==1.2.1
+pillow==12.3.0
+potracer==0.0.4
