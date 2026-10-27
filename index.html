@@ -20,7 +20,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#121010">
-<link rel="preload" href="chu/hpt-tay.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="chu/hpt-tay.woff2?v=7fd588e1" as="font" type="font/woff2" crossorigin>
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}
   html:not(.chinh) .tune, html:not(.chinh) .proto, html:not(.chinh) #panel { display: none !important; }   /* công cụ chỉnh: chỉ cho Nguyên */
 </style>
@@ -155,7 +155,7 @@
   /* ---------- chữ tay: font dựng từ chữ viết tay của Nguyên trên vở ô ly (26/10/2026) ----------
      Mỗi chữ có 5 đến 6 bản viết, dấu có 2 bản; mỗi bài bốc sẵn một bản cho từng chữ và giữ cố định.
      Tên bài, lời thơ, ngày tháng và tên bài dưới cuộn phim đều dùng chữ tay. */
-  @font-face { font-family: 'HPT Tay'; src: url('chu/hpt-tay.woff2') format('woff2'); font-display: block; }
+  @font-face { font-family: 'HPT Tay'; src: url('chu/hpt-tay.woff2?v=7fd588e1') format('woff2'); font-display: block; }   /* ?v= đổi mỗi lần thay font, để trình duyệt (nhất là Safari) không giữ font cũ */
   .hand .p-title { font: 400 1.5em/2.4 'HPT Tay', var(--font-title); margin: -.6em 0 1.2em; padding: .6em 0 .4em; }   /* to hơn lời thơ như trước (chữ tay có phần thân nhỏ hơn Playfair) */
   .hand .p-date { font-style: normal; font-size: 1em; margin: 2.5em 0 -.5em; padding: .5em 0; }
   .hand .caption { font-family: 'HPT Tay', var(--font-title); font-style: normal; line-height: 1.7; font-size: calc(clamp(0.95rem, 0.85rem + 0.45vw, 1.3rem) * 1.4 * var(--cap)); padding: .8em 0 1em; margin-bottom: -1em; }
