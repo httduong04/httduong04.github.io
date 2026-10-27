@@ -164,6 +164,7 @@
   .f1 { font-feature-settings: "cv01"; } .f2 { font-feature-settings: "cv02"; } .f3 { font-feature-settings: "cv03"; } .f4 { font-feature-settings: "cv04"; } .f5 { font-feature-settings: "cv05"; } .f6 { font-feature-settings: "cv06"; } .f7 { font-feature-settings: "cv07"; } .f8 { font-feature-settings: "cv08"; } .f9 { font-feature-settings: "cv09"; } .f10 { font-feature-settings: "cv10"; } .f11 { font-feature-settings: "cv11"; }
   /* chữ in hoa Nguyên viết riêng, cho chữ viết tắt toàn chữ hoa như LGBTQIA (ss02) */
   .pr { font-feature-settings: "ss02"; }
+  .ap-hoa { position: relative; top: -0.62em; margin: 0 -0.12em 0 0.3em; }   /* nháy đơn ngay sau chữ hoa (I’ll, I’ve): đưa lên ngang đầu chữ hoa, dời qua khỏi nét đầu chữ I (Nguyên dặn, 28/10) */
   /* dạng cuối từ, đuôi dài (cv20–cv31) */
   .c20 { font-feature-settings: "cv20"; } .c21 { font-feature-settings: "cv21"; } .c22 { font-feature-settings: "cv22"; } .c23 { font-feature-settings: "cv23"; } .c24 { font-feature-settings: "cv24"; } .c25 { font-feature-settings: "cv25"; } .c26 { font-feature-settings: "cv26"; } .c27 { font-feature-settings: "cv27"; } .c28 { font-feature-settings: "cv28"; } .c29 { font-feature-settings: "cv29"; } .c30 { font-feature-settings: "cv30"; } .c31 { font-feature-settings: "cv31"; }
   .p-end-wrap { display: grid; place-items: center; padding: 22vh var(--gutter) 26vh; }
@@ -1004,7 +1005,7 @@ var TEX = {"sông trăng tiêu điều": {"src": "anh/nen/song-trang-tieu-dieu.j
       /* âm ghép (ch, ng, ngh, th...) Nguyên viết liền: giữ cả cụm trong một khúc chữ để font ghép thành một nét, bốc chung một bản */
       var ch = text.charAt(i);
       for (var d = 0; d < DIG.length; d++) if (text.substr(i, DIG[d].length) === DIG[d]) { ch = DIG[d]; break; }
-      var before = i > 0 && LETTER.test(text.charAt(i - 1));
+      var before = i > 0 && LETTER.test(text.charAt(i - 1)), capBefore = i > 0 && UP.test(text.charAt(i - 1));
       i += ch.length;
       var after = i < text.length && LETTER.test(text.charAt(i));
       /* chữ đứng cuối từ dùng dạng riêng: đuôi dài kéo bay */
@@ -1015,6 +1016,7 @@ var TEX = {"sông trăng tiêu điều": {"src": "anh/nen/song-trang-tieu-dieu.j
         if (pv) cls = 'c' + (20 + bi + 6 * mj);
         else { f = bi + 6 * mj; if (f) cls = 'f' + f; }
       }
+      if ((ch === '’' || ch === "'") && capBefore) cls = (cls ? cls + ' ' : '') + 'ap-hoa';
       if (!cls) { run += ch; continue; }
       if (run) { frag.appendChild(document.createTextNode(run)); run = ''; }
       var sp = document.createElement('span'); sp.className = cls; sp.textContent = ch; frag.appendChild(sp);
