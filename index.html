@@ -782,6 +782,7 @@ window.HPT_SITE = (function () {
   function enterRoom(name, kb) {
     name = name || 'tho';
     if (busy || cur) return; busy = true;
+    pushed(1);
     byKeyboard = !!kb;
     if (!kb && document.activeElement && document.activeElement.blur) document.activeElement.blur();
     hideHome(function () {                       /* trang chủ tối hẳn rồi phòng mới hiện ra */
@@ -815,6 +816,7 @@ window.HPT_SITE = (function () {
   }
   function leaveRoom() {                         /* từ phòng thơ */
     if (busy || cur !== 'tho') return; busy = true;
+    left(0);
     room.classList.add('off'); room.setAttribute('aria-hidden', 'true');
     setTimeout(function () {
       cur = null;
@@ -832,14 +834,14 @@ window.HPT_SITE = (function () {
     setTimeout(function () { busy = false; }, D);
   }
   function abortHo() {                           /* phòng hồ hỏng: không để người đọc kẹt ở màn hình tối, đưa về trang chủ */
-    clearTimeout(loadTimer);
+    clearTimeout(loadTimer); left(0);
     if (hoFrame) { hoFrame.remove(); hoFrame = null; }
     hoWrap.classList.add('off'); hoWrap.setAttribute('aria-hidden', 'true');
     cur = null; showHome(0, 'doorHo');
     setTimeout(function () { busy = false; }, D);
   }
   function leaveHo(sec) {                        /* phòng hồ báo đã hết chữ hoặc người đọc bấm trở về: mặt hồ mờ dần, trang chủ hiện lên cùng lúc */
-    if (cur !== 'ho') return; busy = true; clearTimeout(loadTimer);
+    if (cur !== 'ho') return; busy = true; clearTimeout(loadTimer); left(0);
     sec = reduce ? 0.03 : sec;
     hoWrap.style.transition = 'opacity ' + sec + 's ease, visibility 0s linear ' + sec + 's';
     hoWrap.classList.add('off'); hoWrap.setAttribute('aria-hidden', 'true');
@@ -873,7 +875,7 @@ window.HPT_SITE = (function () {
     setTimeout(function () { busy = false; }, D);
   }
   function abortPha() {
-    clearTimeout(phaTimer);
+    clearTimeout(phaTimer); left(0);
     if (phaFrame) { phaFrame.remove(); phaFrame = null; }
     closeSound();
     phaWrap.classList.add('off'); phaWrap.setAttribute('aria-hidden', 'true');
@@ -881,7 +883,7 @@ window.HPT_SITE = (function () {
     setTimeout(function () { busy = false; }, D);
   }
   function leavePha(sec) {
-    if (cur !== 'pha') return; busy = true; clearTimeout(phaTimer);
+    if (cur !== 'pha') return; busy = true; clearTimeout(phaTimer); left(0);
     sec = reduce ? 0.03 : sec;
     phaWrap.style.transition = 'opacity ' + sec + 's ease, visibility 0s linear ' + sec + 's';
     phaWrap.classList.add('off'); phaWrap.setAttribute('aria-hidden', 'true');
@@ -905,7 +907,45 @@ window.HPT_SITE = (function () {
     else if (e.data.hpt === 'ho-ready') showHo();
     else if (e.data.hpt === 'ho-log') HPT_LOG('hồ: ' + e.data.msg);
   });
-  return { enterRoom: enterRoom, leaveRoom: leaveRoom, primeSound: primeSound, inRoom: function () { return cur === 'tho'; }, current: function () { return cur; } };
+  /* nút quay lại của trình duyệt (cả vuốt quay lại trên điện thoại): mỗi lần vào phòng, mở bài là thêm một bước vào lịch sử,
+     quay lại thì lùi một bước giống bấm "trở về": từ bài về cuộn phim, từ phòng về trang chủ. Rời bằng nút trên trang thì lịch sử lùi theo,
+     nên từ trang chủ bấm quay lại vẫn ra khỏi trang như thường. Bước: 0 trang chủ, 1 trong phòng, 2 đang đọc một bài. */
+  var lvl = 0, want = 0, stepping = false, navTimer = null, seq = 0;
+  try { history.replaceState({ hpt: 0 }, ''); } catch (e) {}
+  function histLvl() { try { return (history.state && history.state.hpt) || 0; } catch (e) { return 0; } }
+  function pushed(n) { lvl = n; want = n; stepping = false; seq++; try { history.pushState({ hpt: n }, ''); } catch (e) {} }
+  function left(n) {                             /* giao diện bắt đầu lùi về bước n */
+    if (n < lvl) {
+      lvl = n; if (want > n) want = n;
+      var s = histLvl();
+      if (s > n) try { history.go(n - s); } catch (e) {}      /* rời bằng nút trên trang: lịch sử lùi theo */
+    }
+    stepping = false; settle();
+  }
+  function pressBack(frame) {                    /* bấm nút "trở về" của chính phòng hồ / phòng phá, để phòng rời đi theo cách của nó */
+    try { var b = frame && frame.contentDocument && frame.contentDocument.getElementById('back'); if (b) { b.click(); return true; } } catch (e) {}
+    return false;
+  }
+  function stepBack() {
+    if (lvl >= 2) return !!(window.HPT_ROOM && window.HPT_ROOM.closeForBack && window.HPT_ROOM.closeForBack());
+    if (busy) return false;
+    if (cur === 'tho') { if (window.HPT_ROOM && window.HPT_ROOM.reading && window.HPT_ROOM.reading()) return false; leaveRoom(); return true; }
+    if (cur === 'ho' || cur === 'pha') {
+      var which = cur, mine = seq;
+      if (!pressBack(which === 'ho' ? hoFrame : phaFrame)) { if (which === 'ho') leaveHo(2); else leavePha(1.2); }
+      setTimeout(function () { if (seq === mine && lvl >= 1 && cur === which) { if (which === 'ho') leaveHo(2); else leavePha(1.2); } }, 3000);   /* phòng không phản hồi thì tự rời */
+      return true;
+    }
+    lvl = 0; return false;
+  }
+  function settle() {
+    clearTimeout(navTimer);
+    if (stepping || want >= lvl) return;
+    stepping = true;                             /* bước lùi xong thì left() gỡ cờ này */
+    if (!stepBack()) { stepping = false; if (want < lvl) navTimer = setTimeout(settle, 200); }   /* đang chuyển cảnh: đợi xong rồi lùi */
+  }
+  window.addEventListener('popstate', function (e) { want = (e.state && e.state.hpt) || 0; settle(); });
+  return { enterRoom: enterRoom, leaveRoom: leaveRoom, primeSound: primeSound, inRoom: function () { return cur === 'tho'; }, current: function () { return cur; }, pushed: pushed, left: left };
 })();
 </script>
 <script>
@@ -1516,6 +1556,7 @@ var TEX = {"sông trăng tiêu điều": {"src": "anh/nen/song-trang-tieu-dieu.j
   function openPoem(i) {
     if (mode !== 'reel') return;
     mode = 'opening'; openIdx = i; hideIdx = i;
+    if (window.HPT_SITE && window.HPT_SITE.pushed) window.HPT_SITE.pushed(2);
     var p = frames[i].poem;
     fillPoem(p);
     pEnd.classList.remove('shown'); pEnd.style.visibility = '';
@@ -1534,6 +1575,7 @@ var TEX = {"sông trăng tiêu điều": {"src": "anh/nen/song-trang-tieu-dieu.j
   function closePoem(flyBack) {
     if (mode !== 'poem') return;
     mode = 'closing';
+    if (window.HPT_SITE && window.HPT_SITE.left) window.HPT_SITE.left(1);
     var i = openIdx, D = reduce ? 250 : 1050;
     canvas.classList.remove('away');
     var done;
@@ -1601,7 +1643,9 @@ var TEX = {"sông trăng tiêu điều": {"src": "anh/nen/song-trang-tieu-dieu.j
   applyUI();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitPoem);
   if (!window.HPT_SITE) canvas.focus({ preventScroll: true });
-  window.HPT_ROOM = { enter: function () { layout(); canvas.focus({ preventScroll: true }); }, leave: function () { layout(); } };
+  window.HPT_ROOM = { enter: function () { layout(); canvas.focus({ preventScroll: true }); }, leave: function () { layout(); },
+    closeForBack: function () { if (mode !== 'poem') return false; closePoem(false); return true; },   /* nút quay lại của trình duyệt khi đang đọc bài */
+    reading: function () { return mode !== 'reel'; } };
   requestAnimationFrame(frame);
   if (/debug/.test(location.hash)) {
     window.__reelDebug = {};
