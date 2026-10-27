@@ -194,12 +194,12 @@ def draw_vis(pg, entries, path):
 
 # cách ước lượng đường chân chữ trước khi bắt vào dòng kẻ
 DESC_TOP = set('gpqyj') | {'p@fina', 'y@fina'}        # có đuôi dưới: lấy đỉnh thân + nửa ô lớn
-DESC_ALL = set('gpqyj') | {'gh', 'gi', 'ngh', 'qu', 'ng', 'ph', 'p@fina', 'y@fina', 'ng@fina'}
+DESC_ALL = set('gpqyjf') | {'gh', 'gi', 'ngh', 'qu', 'ng', 'ph', 'p@fina', 'y@fina', 'ng@fina'}
 RIGHT_STRIP = {'gh', 'gi', 'ngh', 'qu'}                 # chữ cuối (h, i, u) ngồi trên dòng kẻ
 BAND = {'ng', 'ng@fina', 'ph'}                          # dải cao nửa ô lớn chứa nhiều mực nhất là dải chữ thường
 def estimate_base(key, a, org, P):
     m = a > 0.5; H_, W_ = m.shape; ib = ink_box(a, org)
-    if key == 'f': return ib[1] + 1.25 * P
+    if key == 'f': return ib[1] + 0.7 * P      # f: vòng dưới thò xuống dưới dòng kẻ như g, y (Nguyên dặn, 28/10); dòng kẻ cắt ngang thân f
     if key in DESC_TOP: return ib[1] + 0.4 * P
     if key in RIGHT_STRIP:
         ys = np.nonzero(m[:, int(W_ * 0.78):].any(1))[0]; return org[1] + ys.max()

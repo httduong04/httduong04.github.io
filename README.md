@@ -30,7 +30,7 @@ python3 -c "from fontTools.ttLib import TTFont; f = TTFont('work/HPTTay.ttf'); f
 
 Sau đó thay `chu/hpt-tay.woff2` trên nhánh `main` bằng `font3/work/hpt-tay.woff2`.
 
-Dựng lại từ đây ra đúng font đang chạy trên trang ngày 26/10/2026: cùng nét chữ, cùng cách thay bản chữ. Chỉ khác một số đo trung bình trong font, không ảnh hưởng hiển thị.
+Dựng lại từ đây ra đúng font đang chạy trên trang (28/10/2026).
 
 ## Thêm chữ hoặc viết lại chữ
 

@@ -13,7 +13,7 @@ P = dict(overlap=9.0, gap_xh=1.1, side=0.04)
 D = json.load(open(WD + '/db.json')); DB = D['db']; XH = D['xh1']
 UPM = 1000; S = 0.45 * UPM / XH          # chiều cao chữ thường: thân chữ đo được khoảng 0,43 em, bằng cỡ nhìn của bản trước
 UP = 4                                   # độ phân giải khi dò nét: 4 điểm cho mỗi px của trang 1
-NODESC = set('abcdđefhiklmnorstuvwxzơư') | set('ABCDĐEFHIKLMNOPQRSTUVWXZƠƯ') | set('0123456789') | {'ch', 'kh', 'nh', 'th', 'tr'}
+NODESC = set('abcdđehiklmnorstuvwxzơư') | set('ABCDĐEFHIKLMNOPQRSTUVWXZƠƯ') | set('0123456789') | {'ch', 'kh', 'nh', 'th', 'tr'}
 DIGRAPHS = ['ngh', 'ch', 'gh', 'gi', 'kh', 'ng', 'nh', 'ph', 'qu', 'th', 'tr']   # âm ghép viết liền
 
 def sw_of(b):
@@ -308,8 +308,9 @@ cmap = {32: 'space', 0xA0: 'space'}
 for ch, (nb, nm) in NV.items():
     if len(ch) == 1 and ch != 'ı': cmap[ord(ch)] = gid(ch, 1, 1)
 cmap[0x131] = gid('ı', 1, 1)
-for src, dst in (('"', '“'), ('–', '—'), ('’', '”'), ("'", '”')):
-    if dst in NV: cmap[ord(src)] = gid(dst, 1, 1)
+# dấu chưa viết riêng thì mượn dấu gần nhất; dấu đã có bản viết (như ’) thì giữ bản của nó (28/10: won’t bị hiện thành nháy kép)
+for src, dst in (('"', '“'), ('–', '—'), ('’', '”'), ("'", '’'), ("'", '”')):
+    if ord(src) not in cmap and dst in NV: cmap[ord(src)] = gid(dst, 1, 1)
 fb.setupCharacterMap(cmap)
 fb.setupGlyf(G)
 for n in names:       # lề trái theo nét thật
