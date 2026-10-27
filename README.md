@@ -28,7 +28,7 @@ python3 build_font3.py work/HPTTay.ttf
 python3 -c "from fontTools.ttLib import TTFont; f = TTFont('work/HPTTay.ttf'); f.flavor = 'woff2'; f.save('work/hpt-tay.woff2')"
 ```
 
-Sau đó thay `chu/hpt-tay.woff2` trên nhánh `main` bằng `font3/work/hpt-tay.woff2`.
+Sau đó thay `chu/hpt-tay.woff2` trên nhánh `main` bằng `font3/work/hpt-tay.woff2`, rồi đổi số `?v=` ở hai chỗ gọi font trong `index.html` (dòng `preload` và `@font-face`) thành 8 ký tự đầu của mã md5 của tệp font mới. Không đổi số này thì Safari có thể vẫn giữ font cũ.
 
 Dựng lại từ đây ra đúng font đang chạy trên trang (28/10/2026).
 
